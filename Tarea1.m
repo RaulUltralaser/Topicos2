@@ -3,38 +3,72 @@ clearvars
 close all 
 
 %Matriz de grado
+%Primer punto
  D=[2 0 0 0 0 0;
     0 2 0 0 0 0;
     0 0 2 0 0 0;
     0 0 0 2 0 0;
     0 0 0 0 2 0;
     0 0 0 0 0 2];
+%Segundo punto
+% D=[3 0 0 0 0 0;
+%    0 3 0 0 0 0;
+%    0 0 3 0 0 0;
+%    0 0 0 2 0 0;
+%    0 0 0 0 3 0;
+%    0 0 0 0 0 2];
+%Tercer punto
+D=5*eye(6);
 
 %Matriz de adyacencia
- A=[0 1 0 0 0 1;
-    1 0 1 0 0 0;
-    0 1 0 1 0 0;
-    0 0 1 0 1 0;
-    0 0 0 1 0 1;
-    1 0 0 0 1 0];
+%Primer punto
+%  A=[0 1 0 0 0 1;
+%     1 0 1 0 0 0;
+%     0 1 0 1 0 0;
+%     0 0 1 0 1 0;
+%     0 0 0 1 0 1;
+%     1 0 0 0 1 0];
+%Segundo punto
+% A=[0 1 1 0 0 1;
+%    1 0 1 0 1 0;
+%    1 1 0 1 0 0;
+%    0 0 1 0 1 0;
+%    0 1 0 1 0 1;
+%    1 0 0 0 1 0];
+%Tercer punto
+A=[0 1 1 1 1 1;
+   1 0 1 1 1 1;
+   1 1 0 1 1 1;
+   1 1 1 0 1 1;
+   1 1 1 1 0 1;
+   1 1 1 1 1 0];
 
 %hago el objeto grafo, pero aún no lo ploteo
 G=graph(A);
 
+%Nodos
+n=size(A,1);
+
 %Laplaciano
-L=D-A;
+L=D-A
+
+%SVD DEL LAPLACIANO(es mejor calcularlo en wolfram)
+[U,D,V]=svd(L);
 
 %Valores iniciales
-% x=[1;2;3;4;5;6];
-x=10*rand(6,1); %errores
+x=[1;2;3;4;5;6];
+% x=10*rand(6,1); %errores
 xl=x; %laplaciano
+
+%Calculo error en estado estable
+SS=(1/n)*U(:,n)*U(:,n)'*x;
 
 %Inicializo e
 e=[0,0,0,0,0,0];
 
 %periodo de muestreo
 Dt=0.01;
-tiempo=10; %segundos
+tiempo=7; %segundos
 iteraciones=tiempo/Dt;
 
 for k=1:iteraciones
