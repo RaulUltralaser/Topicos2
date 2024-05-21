@@ -4,21 +4,33 @@ close all
 
 %Matriz de grado
 %Primer punto
+% D=[0 0 0 0 0;
+%     0 5 0 0 0;
+%     0 0 5 0 0;
+%     0 0 0 6 0;
+%     0 0 0 0 10];
+%Segundo Punto
 D=[0 0 0 0 0;
     0 5 0 0 0;
     0 0 5 0 0;
-    0 0 0 6 0;
-    0 0 0 0 10];
+    0 0 0 9 0;
+    0 0 0 0 13];
 
 %Matriz de adyacencia
+% A=[0 0 0 0 0;
+%    3 0 2 0 0;
+%    0 0 0 5 0;
+%    6 0 0 0 0;
+%    0 2 0 8 0];
+%Segundo Punto
 A=[0 0 0 0 0;
    3 0 2 0 0;
    0 0 0 5 0;
-   6 0 0 0 0;
-   0 2 0 8 0];
+   6 1 2 0 0;
+   0 2 3 8 0];
 
 %hago el objeto grafo, pero aún no lo ploteo
-% G=graph(A);
+G=digraph(A');
 
 %Nodos
 n=size(A,1);
@@ -87,8 +99,8 @@ plot(te,eLtotal)
 title('Error de consenso')
 grid on
 
-% figure
-% plot(G);
+figure
+plot(G, 'Layout', 'force', 'EdgeLabel', G.Edges.Weight);
 
 function e=calcular_e(A,x,iteracion,n)
     for i = 1:n
