@@ -4,30 +4,31 @@ close all
 
 %Matriz de grado
 %Primer punto
-% D=[0 0 0 0 0;
-%     0 5 0 0 0;
-%     0 0 5 0 0;
-%     0 0 0 6 0;
-%     0 0 0 0 10];
-%Segundo Punto
 D=[0 0 0 0 0;
     0 5 0 0 0;
     0 0 5 0 0;
-    0 0 0 9 0;
-    0 0 0 0 13];
+    0 0 0 6 0;
+    0 0 0 0 10];
+%Segundo Punto
+% D=[0 0 0 0 0;
+%     0 5 0 0 0;
+%     0 0 5 0 0;
+%     0 0 0 9 0;
+%     0 0 0 0 13];
 
 %Matriz de adyacencia
-% A=[0 0 0 0 0;
-%    3 0 2 0 0;
-%    0 0 0 5 0;
-%    6 0 0 0 0;
-%    0 2 0 8 0];
-%Segundo Punto
+%Primer punto
 A=[0 0 0 0 0;
    3 0 2 0 0;
    0 0 0 5 0;
-   6 1 2 0 0;
-   0 2 3 8 0];
+   6 0 0 0 0;
+   0 2 0 8 0];
+%Segundo Punto
+% A=[0 0 0 0 0;
+%    3 0 2 0 0;
+%    0 0 0 5 0;
+%    6 1 2 0 0;
+%    0 2 3 8 0];
 
 %hago el objeto grafo, pero aún no lo ploteo
 G=digraph(A');
@@ -101,6 +102,38 @@ grid on
 
 figure
 plot(G, 'Layout', 'force', 'EdgeLabel', G.Edges.Weight);
+
+% Definir los centros y radios de los discos
+centros = [5, 5, 9, 13];
+radios = [5, 5, 9, 13];
+
+% Definir los eigenvalores
+eigenvalores = [0, 4.45, 5.86, 10.91, 16.81];
+
+% Crear la figura
+figure;
+hold on;
+axis equal;
+xlabel('Parte Real');
+ylabel('Parte Imaginaria');
+title('Discos de Gershgorin y Eigenvalores');
+
+% Graficar los discos
+theta = linspace(0, 2*pi, 100);
+for i = 1:length(centros)
+    x = centros(i) + radios(i) * cos(theta);
+    y = radios(i) * sin(theta);
+    plot(x, y, 'b');
+end
+
+% Graficar los eigenvalores
+plot(real(eigenvalores), imag(eigenvalores), 'ro', 'MarkerSize', 8, 'LineWidth', 2);
+
+% Añadir leyenda
+% legend('Discos de Gershgorin', 'Eigenvalores', 'Location', 'Best');
+grid on
+hold off;
+
 
 function e=calcular_e(A,x,iteracion,n)
     for i = 1:n
