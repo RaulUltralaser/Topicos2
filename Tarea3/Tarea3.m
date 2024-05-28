@@ -4,33 +4,33 @@ close all
 
 %Matriz de grado
 %Primer punto
-% D=[0 0 0 0;
-%    0 1 0 0;
-%    0 0 1 0;
-%    0 0 0 1;];
-%Segundo punto
-D=[1 0 0 0;
-   0 2 0 0;
-   0 0 2 0;
+D=[0 0 0 0;
+   0 1 0 0;
+   0 0 1 0;
    0 0 0 1;];
+%Segundo punto
+% D=[1 0 0 0;
+%    0 2 0 0;
+%    0 0 2 0;
+%    0 0 0 1;];
 
 
 %Matriz de adyacencia
 %Primer punto
-% A=[0 0 0 0;
-%    1 0 0 0;
-%    0 1 0 0;
-%    0 0 1 0;];
-%Segundo punto
-A=[0 1 0 0;
-   1 0 1 0;
-   0 1 0 1;
+A=[0 0 0 0;
+   1 0 0 0;
+   0 1 0 0;
    0 0 1 0;];
+%Segundo punto
+% A=[0 1 0 0;
+%    1 0 1 0;
+%    0 1 0 1;
+%    0 0 1 0;];
 
 
 %hago el objeto grafo, pero aún no lo ploteo
-% G=digraph(A');
-G=graph(A);
+G=digraph(A');
+% G=graph(A);
 
 %Nodos
 n=size(A,1);
@@ -38,13 +38,13 @@ n=size(A,1);
 %Laplaciano
 L=D-A
 
-%SVD DEL LAPLACIANO(es mejor calcularlo en wolfram)
-[U,D,V]=svd(L);
+%Calculo de los eigenvalores
+eig(-L)
 
 %Formo la matríz Gama
 n=size(L,1);
 l=3; %Posición, velocidad, aceleración
-gammas=[1 2 3];%defino mis valores de gamma
+gammas=[2 1 3];%defino mis valores de gamma
 
 Gamma=zeros(l*n,l*n); %Inicializo la matriz Gamma
 I=eye(n);
@@ -112,6 +112,7 @@ plot(t,xi(9:12,:))
 grid on
 
 figure
-plot(G, 'Layout', 'force', 'EdgeLabel', G.Edges.Weight);
+% plot(G, 'Layout', 'force', 'EdgeLabel', G.Edges.Weight);
+plot(G);
 
 
