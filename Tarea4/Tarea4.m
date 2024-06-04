@@ -67,79 +67,88 @@ L2=D2-A2
 L3=D3-A3
 L4=D4-A4
 % 
+
+%Caso especial inciso d)
+L=[3 1 1 1 0;
+   1 2 1 0 0;
+   1 1 2 0 0;
+   1 0 0 2 1;
+   0 0 0 0 0];
+%Caso especial inciso f)
+Lf=[0 0 0 0 1;
+    0 0 0 0 1;
+    0 0 0 0 1;
+    0 0 0 0 1;
+    0 0 0 0 0];
+
 %Calculo de los eigenvalores
-eig(-L1)
-eig(-L2)
-eig(-L3)
-eig(-L4)
-% 
-% %Formo la matríz Gama
-% n=size(L,1);
-% l=3; %Posición, velocidad, aceleración
-% gammas=[2 1 3];%defino mis valores de gamma
-% 
-% Gamma=zeros(l*n,l*n); %Inicializo la matriz Gamma
-% I=eye(n);
-% 
-% %relleno la matriz Gamma
-% for i = 1:l-1
-%     Gamma((i-1)*n+1:i*n, i*n+1:(i+1)*n) = I;
-% end
-% 
-% % Rellenar la última fila de bloques de Gamma
-% Gamma((l-1)*n+1:l*n, :) = [-gammas(1)*L, -gammas(2)*L, -gammas(3)*L];
-% 
+e1=eig(-L1);
+e2=eig(-L1);
+e3=eig(-L1);
+e4=eig(-L1);
+% [u1,d1,v1]=svd(-L1);
+% [u2,d2,v2]=svd(-L2);
+% [u3,d3,v3]=svd(-L3);
+% [u4,d4,v4]=svd(-L4);
 % 
 %Hago el producto Kronecker
 m=1; %dimensiones que estoy considerando
 Im=eye(m);  
-Gamma_kron= kron(L1,Im);
+Kron=kron(L,Im);   %Este es para el inciso d)
+Kronf=kron(Lf,Im); %Este es para el inciso f)
+Kron1= kron(L1,Im);
+Kron2= kron(L2,Im);
+Kron3= kron(L3,Im);
+Kron4= kron(L4,Im);
 % 
 % %% Esta parte es para la simulación del sistema
+
 % %Valores iniciales
-k=0;
-% ref=cos(k); %La referencia que quiero que sigan
-xi0=[1.5;.5;0;-0.5;cos(k)];%Guardo los valores iniciales para referencia
-xi=xi0;%Uso estos valores en la aproximación de Euler
+ref=1; %La referencia que quiero que sigan
+xi0=[1.5;.5;0;-0.5;ref];%Guardo los valores iniciales para referencia
+xi=xi0;xif=xi0;xi1=xi0;xi2=xi0;xi3=xi0;xi4=xi0;xi5=xi0;%Uso estos valores en la aproximación de Euler
 % 
 %periodo de muestreo
 Dt=0.01;
-tiempo=25; %segundos
+tiempo=20; %segundos
 iteraciones=tiempo/Dt;
 
 %Simulo el sistema
 for k=1:iteraciones
     %Aproximación de Euler con Gamma_kron
-    xi(:,k+1)=xi(:,k)-Dt*(Gamma_kron*xi(:,k));
+    xi(:,k+1)=xi(:,k)-Dt*(Kron*xi(:,k));     %Inciso d)
+    xif(:,k+1)=xif(:,k)-Dt*(Kronf*xif(:,k)); %Inciso f)
+    xi1(:,k+1)=xi1(:,k)-Dt*(Kron1*xi1(:,k));
+    xi2(:,k+1)=xi2(:,k)-Dt*(Kron2*xi2(:,k));
+    xi3(:,k+1)=xi3(:,k)-Dt*(Kron3*xi3(:,k));
+    xi4(:,k+1)=xi4(:,k)-Dt*(Kron4*xi4(:,k));
 end
 
-%Calculo de consensos
-% syms t;
-% Uno=ones(n,1);
-% Cero=zeros(n,n);
-% p=[1;0;0;0];
-% egamma=[Uno*p' t*Uno*p' (1/2)*(t^2)*Uno*p';
-%         Cero   Uno*p'   t*Uno*p';
-%         Cero   Cero     Uno*p'];
-% Consenso=egamma*xi0
 
 %Vectores de tiempo para gráficar
 t=linspace(0,tiempo,iteraciones+1);
-% te=linspace(0,tiempo,iteraciones);
-% 
-% figure
-% subplot(1,2,1)
-% plot(t,xi(1:4,:))
-% grid on
-% 
-% subplot(1,2,2)
-% plot(t,xi(5:8,:))
-% grid on
-% 
-% 
+
 figure
-plot(t,xi)
-grid on
+subplot(2,2,1)
+plot(t,xi1);
+title('inciso a')
+subplot(2,2,2)
+plot(t,xi2);
+title('inciso b')
+subplot(2,2,3)
+plot(t,xi3);
+title('inciso c')
+subplot(2,2,4)
+plot(t,xi4);
+title('inciso d')
+
+figure
+plot(t,xi);
+title('inciso d)')
+
+figure
+plot(t,xif);
+title('inciso f)')
 
 figure
 subplot(2,2,1)
@@ -154,6 +163,8 @@ title('inciso c')
 subplot(2,2,4)
 plot(G4);
 title('inciso d')
+
+
 
 
 
