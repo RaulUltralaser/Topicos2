@@ -51,7 +51,7 @@ xi=xi0;%Uso estos valores en la aproximación de Euler
 % 
 %periodo de muestreo
 Dt=0.01;
-tiempo=70; %segundos
+tiempo=100; %segundos
 iteraciones=tiempo/Dt;
 
 %Simulo el sistema
@@ -85,6 +85,9 @@ t=linspace(0,tiempo,iteraciones+1);
 
 figure
 plot(t,xi);
+xlabel('Tiempo');
+ylabel('Estado');
+title('Consenso con topología cambiante')
 
 
 

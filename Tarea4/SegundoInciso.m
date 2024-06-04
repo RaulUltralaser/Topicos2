@@ -9,15 +9,15 @@ Dt = 0.01; % Paso de tiempo
 iteraciones = T / Dt;
 
  % Matriz de adyacencia 
-% A1 = [0 0 0 0;
-%       1 0 1 0;
-%       0 1 0 0;
-%       1 0 0 0;];
+A1 = [0 0 0 0;
+      1 0 1 0;
+      0 1 0 0;
+      1 0 0 0;];
 % Matriz de adyacencia segundo caso
-A1=[0 1 0 1;
-    1 0 1 0;
-    0 1 0 0;
-    1 0 0 0];
+% A1=[0 1 0 1;
+%     1 0 1 0;
+%     0 1 0 0;
+%     1 0 0 0];
 
 K = ones(num_agents); % Matriz de coeficientes k_{ij}
 alpha = ones(num_agents, 1); % Vector de coeficientes alpha_i

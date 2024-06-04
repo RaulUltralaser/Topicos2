@@ -69,27 +69,27 @@ L4=D4-A4
 % 
 
 %Caso especial inciso d)
-L=[3 1 1 1 0;
-   1 2 1 0 0;
-   1 1 2 0 0;
-   1 0 0 2 1;
+L=[3 -1 -1 -1 0;
+   -1 2 -1 0 0;
+   -1 -1 2 0 0;
+   -1 0 0 2 -1;
    0 0 0 0 0];
 %Caso especial inciso f)
-Lf=[0 0 0 0 1;
-    0 0 0 0 1;
-    0 0 0 0 1;
-    0 0 0 0 1;
+Lf=[1 0 0 0 -1;
+    0 1 0 0 -1;
+    0 0 1 0 -1;
+    0 0 0 1 -1;
     0 0 0 0 0];
 
 %Calculo de los eigenvalores
 e1=eig(-L1);
-e2=eig(-L1);
-e3=eig(-L1);
-e4=eig(-L1);
-% [u1,d1,v1]=svd(-L1);
-% [u2,d2,v2]=svd(-L2);
-% [u3,d3,v3]=svd(-L3);
-% [u4,d4,v4]=svd(-L4);
+e2=eig(-L2);
+e3=eig(-L3);
+e4=eig(-L4);
+svd(-L1)
+svd(-L2)
+svd(-L3)
+svd(-L4)
 % 
 %Hago el producto Kronecker
 m=1; %dimensiones que estoy considerando
@@ -145,10 +145,14 @@ title('inciso d')
 figure
 plot(t,xi);
 title('inciso d)')
+xlabel('Tiempo s')
+ylabel('Estados')
 
 figure
 plot(t,xif);
 title('inciso f)')
+xlabel('Tiempo s')
+ylabel('Estados')
 
 figure
 subplot(2,2,1)

@@ -77,6 +77,10 @@ t=linspace(0,tiempo,iteraciones+1);
 
 figure
 plot(t,xi);
+xlabel('Tiempo');
+ylabel('Estado');
+title('Consenso con topología cambiante con seguidor')
+ylim([0 1])
 
 
 
