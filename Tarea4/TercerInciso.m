@@ -5,32 +5,32 @@ close all
 %Laplacianos
 L1=[1 0 -1 0 0;
     0 0 0 0 0;
-    0 0 0 0 0;
+    -1 0 1 0 0;
     0 0 0 0 0;
     0 0 0 0 0];
 
-L2=[0 0 0 0 0;
+L2=[1 -1 0 0 0;
     -1 1 0 0 0;
     0 0 0 0 0;
     0 0 0 0 0;
     0 0 0 0 0];
 
-L3=[0 0 0 0 0;
-    0 0 0 0 0;
+L3=[1 0 -1 0 0;
+    0  0 0 0 0;
     -1 0 1 0 0;
-    0 0 0 0 0;
-    0 0 0 0 0];
+    0  0 0 0 0;
+    0  0 0 0 0];
 
 L4=[0 0 0 0 0;
     0 0 0 0 0;
-    0 0 0 0 0;
+    0 0 1 -1 0;
     0 0 -1 1 0;
     0 0 0 0 0];
 
 L5=[0 0 0 0 0;
     0 0 0 0 0;
     0 0 0 0 0;
-    0 0 0 0 0;
+    0 0 0 1 -1;
     0 0 0 -1 1];
 
 % 
@@ -46,12 +46,12 @@ Kron5= kron(L5,Im);
 % %% Esta parte es para la simulación del sistema
 
 % %Valores iniciales
-xi0=[0.2;0.4;0.6;0.8;1];%Guardo los valores iniciales para referencia
+xi0=[.2;0.4;0.6;0.8;1];%Guardo los valores iniciales para referencia
 xi=xi0;%Uso estos valores en la aproximación de Euler
 % 
 %periodo de muestreo
 Dt=0.01;
-tiempo=100; %segundos
+tiempo=250; %segundos
 iteraciones=tiempo/Dt;
 
 %Simulo el sistema

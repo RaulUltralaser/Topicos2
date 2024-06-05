@@ -105,7 +105,7 @@ Kron4= kron(L4,Im);
 
 % %Valores iniciales
 ref=1; %La referencia que quiero que sigan
-xi0=[1.5;.5;0;-0.5;ref];%Guardo los valores iniciales para referencia
+xi0=[-0.5;0;.5;1.5;ref];%Guardo los valores iniciales para referencia
 xi=xi0;xif=xi0;xi1=xi0;xi2=xi0;xi3=xi0;xi4=xi0;xi5=xi0;%Uso estos valores en la aproximación de Euler
 % 
 %periodo de muestreo
