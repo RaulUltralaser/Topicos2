@@ -38,8 +38,8 @@ y_offset = [0, -d, 0, d];
 
 % Parámetros de control
 k_a = 1;
-k_v = 2;
-k_p = 5;
+k_v = 5;
+k_p = 10;
 
 % Inicializar posiciones y velocidades de los agentes
 p = zeros(4, 1); 
