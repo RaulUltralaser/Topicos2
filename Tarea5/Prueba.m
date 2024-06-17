@@ -42,7 +42,7 @@ k_v = 2;
 k_p = 5;
 
 % Inicializar posiciones y velocidades de los agentes
-p = zeros(4, 1, length(t)); 
+p = zeros(4, 1); 
 
 % Inicializar estados
 %Primer punto
@@ -54,14 +54,14 @@ for k = 1:length(t)-1
     % Posiciones deseadas en el siguiente instante de tiempo
     p_des = [x_curve(k+1) + 1;y_curve(k+1)];
     % Posicion actual
-    p_real= p(1:2)';
+    p_real= p(1:2,k);
     %Error de posicion
     e_p = p_des-p_real;
 
     %Velocidad deseada
     v_des=[vx_curve(k+1);vy_curve(k+1)];
     %Velocidad actual
-    v_real=p(3:4)';
+    v_real=p(3:4,k);
     %Error de velocidad
     e_v = v_des-v_real;
 %     e_v=-k_p*e_p;
@@ -85,7 +85,7 @@ plot(x_curve, y_curve, 'k', 'LineWidth', 1.5);
 % Colores para los agentes
 colors = ['r', 'g', 'b', 'm'];
 
-plot(p(1, 1), p(2, 1), 'Color', colors(1), 'LineWidth', 1.5);
+plot(p(1, :), p(2, :), 'Color', colors(1), 'LineWidth', 1.5);
 
 
 title('Curva de Lissajous con trayectorias de agentes controlados');
