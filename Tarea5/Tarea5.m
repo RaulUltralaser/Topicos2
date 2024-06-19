@@ -26,25 +26,27 @@ t = linspace(0, tiempo, 1000); % Aumentar el rango de tiempo para la simulación
 % Ecuaciones paramétricas de la curva de Lissajous
 x_curve = A * sin(a * t + delta);
 y_curve = B * sin(b * t);
-
-vx_curve= A*a*cos(a*t);
+%Derivada de la curva de Lissajous
+vx_curve= A*a*cos(a*t+delta);
 vy_curve= B*b*cos(b*t);
-
+%Segunda derivada
+ax_curve= - A* a^2 * sin(a * t +delta);
+ay_curve= - B * b^2 * sin(b * t);
 % Distancia desde la curva para los agentes
 d = .5;
 
 % Posiciones relativas de los agentes con respecto a la curva
 %Primer punto
-% x_offset = [d, 0, -d, 0];
-% y_offset = [0, -d, 0, d];
+x_offset = [d, 0, -d, 0];
+y_offset = [0, -d, 0, d];
 %Segundo punto
-x_offset = 5*[rand(), rand(), -rand(), rand()];
-y_offset = 10*[rand(), -rand(), rand(), rand()];
+% x_offset = 5*[rand(), rand(), -rand(), rand()];
+% y_offset = 10*[rand(), -rand(), rand(), rand()];
 
 % Parámetros de control
 k_a = 1;
-k_v = 5;
-k_p = 10;
+k_v = 10;
+k_p = 20;
 
 % Inicializar posiciones y velocidades de los agentes
 p = zeros(4, 1); 
@@ -96,15 +98,15 @@ for k = 1:length(t)-1
     % e_v=-k_p*e_p;
 
     % Control de aceleracion
-    u = -k_a * (k_v * e_v - k_p * e_p);
-    u2 = -k_a * (k_v * e_v2 - k_p * e_p2);
-    u3 = -k_a * (k_v * e_v3 - k_p * e_p3);
-    u4 = -k_a * (k_v * e_v4 - k_p * e_p4);
+    u = [ax_curve(k);ay_curve(k)]+k_a * (k_v * e_v + k_p * e_p);
+    u2 =[ax_curve(k);ay_curve(k)]+k_a * (k_v * e_v2 + k_p * e_p2);
+    u3 =[ax_curve(k);ay_curve(k)]+k_a * (k_v * e_v3 + k_p * e_p3);
+    u4 =[ax_curve(k);ay_curve(k)]+k_a * (k_v * e_v4 + k_p * e_p4);
     %Sistema
-    p(:,k+1)=p(:,k)-(AA*p(:,k)+BB*u)*dt;
-    p2(:,k+1)=p2(:,k)-(AA*p2(:,k)+BB*u2)*dt;
-    p3(:,k+1)=p3(:,k)-(AA*p3(:,k)+BB*u3)*dt;
-    p4(:,k+1)=p4(:,k)-(AA*p4(:,k)+BB*u4)*dt;
+    p(:,k+1)=p(:,k)+(AA*p(:,k)+BB*u)*dt;
+    p2(:,k+1)=p2(:,k)+(AA*p2(:,k)+BB*u2)*dt;
+    p3(:,k+1)=p3(:,k)+(AA*p3(:,k)+BB*u3)*dt;
+    p4(:,k+1)=p4(:,k)+(AA*p4(:,k)+BB*u4)*dt;
     
     % Control
     ux(:,k)=u(1);
@@ -159,34 +161,68 @@ grid on;
 axis equal;
 hold off;
 
-figure
-subplot(2,1,1)
-plot(t(1,1:size(t,2)-1),epx);
-title('Errores de posición en x')
-ylabel('Error')
-xlabel('tiempo s')
-grid on
-subplot(2,1,2)
-plot(t(1,1:size(t,2)-1),epy);
-title('Errores de posición en y')
-ylabel('Error')
-xlabel('tiempo s')
-grid on
+figure;
+
+% Primer subplot
+subplot(2,1,1);
+plot(t(1,1:end-1), epx, 'DisplayName', 'epx');
+hold on;
+plot(t(1,1:end-1), epx2, 'DisplayName', 'epx2');
+plot(t(1,1:end-1), epx3, 'DisplayName', 'epx3');
+plot(t(1,1:end-1), epx4, 'DisplayName', 'epx4');
+title('Errores de posición en x');
+ylabel('Error');
+xlabel('Tiempo (s)');
+legend; % Añade una leyenda para identificar cada línea
+grid on;
+hold off;
+
+% Segundo subplot
+subplot(2,1,2);
+plot(t(1,1:end-1), epy, 'DisplayName', 'epy');
+hold on;
+plot(t(1,1:end-1), epy2, 'DisplayName', 'epy2');
+plot(t(1,1:end-1), epy3, 'DisplayName', 'epy3');
+plot(t(1,1:end-1), epy4, 'DisplayName', 'epy4');
+title('Errores de posición en y');
+ylabel('Error');
+xlabel('Tiempo (s)');
+legend; % Añade una leyenda para identificar cada línea
+grid on;
+hold off;
+
 % 
 % 
-figure
-subplot(2,1,1)
-plot(t(1,1:size(t,2)-1),evx);
-title('Errores de velocidad en x')
-ylabel('Error')
-xlabel('tiempo s')
-grid on
-subplot(2,1,2)
-plot(t(1,1:size(t,2)-1),evy);
-title('Errores de velocidad en y')
-ylabel('Error')
-xlabel('tiempo s')
-grid on
+figure;
+
+% Primer subplot
+subplot(2,1,1);
+plot(t(1,1:end-1), evx, 'DisplayName', 'evx');
+hold on;
+plot(t(1,1:end-1), evx2, 'DisplayName', 'evx2');
+plot(t(1,1:end-1), evx3, 'DisplayName', 'evx3');
+plot(t(1,1:end-1), evx4, 'DisplayName', 'evx4');
+title('Errores de velocidad en x');
+ylabel('Error');
+xlabel('Tiempo (s)');
+legend; % Añade una leyenda para identificar cada línea
+grid on;
+hold off;
+
+% Segundo subplot
+subplot(2,1,2);
+plot(t(1,1:end-1), evy, 'DisplayName', 'evy');
+hold on;
+plot(t(1,1:end-1), evy2, 'DisplayName', 'evy2');
+plot(t(1,1:end-1), evy3, 'DisplayName', 'evy3');
+plot(t(1,1:end-1), evy4, 'DisplayName', 'evy4');
+title('Errores de velocidad en y');
+ylabel('Error');
+xlabel('Tiempo (s)');
+legend; % Añade una leyenda para identificar cada línea
+grid on;
+hold off;
+
 
 
 figure
