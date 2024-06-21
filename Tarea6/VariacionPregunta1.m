@@ -34,6 +34,8 @@ for i = 1:length(delta_ji)
     p_star(2*i-1:2*i) = [x_x(i); x_y(i)] + delta_ji(i, :)';
 end
 
+delta_star=[2;2;-2;2;-2;-2;2;-2];
+
 % Parámetros de simulación
 Dt = 0.01; % Periodo de muestreo
 tiempo = 10; % Tiempo total en segundos
@@ -53,7 +55,8 @@ for k = 1:iteraciones
         for j = 1:size(L, 2)
             if L(i, j) ~= 0 % Verificar si hay una conexión
                 % Aplicar control de formación con delta_ji
-                u(2*i-1:2*i) = u(2*i-1:2*i) + k_p * (x_forma(2*j-1:2*j, k) - x_forma(2*i-1:2*i, k) - (p_star(2*j-1:2*j) - p_star(2*i-1:2*i)));
+%                 u(i)=u(i)+k_p*(x_forma(j,k)-x_forma(i,k)-delta_star(i));
+                u(2*i-1:2*i) = u(2*i-1:2*i) + k_p * (x_forma(2*j-1:2*j, k) - x_forma(2*i-1:2*i, k) - delta_star(2*j-1:2*j));
             end
         end
     end

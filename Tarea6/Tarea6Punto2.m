@@ -19,8 +19,8 @@ I=eye(2);
 KL=kron(L,I);
 
 % Definir las condiciones inciales para las coordenadas por separado
-x_x = [-1; -1; 0; 0]; %Esto es en x
-x_y = [0; 0; 0; 0]; %Esto es en y
+x_x = [8; 4; 2; 0]; %Esto es en x
+x_y = [5; 3; 10; 1]; %Esto es en y
 
 % Inicializar el vector
 x = zeros(2 * length(x_x), 1);
@@ -32,93 +32,49 @@ for i = 1:length(x_x)
 end
 x0=x;
 
+% Formación deseada (especificada relativamente)
+ delta=[ 1; % d21 x
+         0; % d21 y
+        -1; % d12 - d32 x
+        -3; % d12 - d32 y
+         0; % d23 x
+         3; % d23 y
+         1; % d34 x
+         0]; % d34 y
+P=zeros(2,1);
+
+
 %Datos de la simulacion
 %periodo de muestreo
 Dt=0.01;
 tiempo=10; %segundos
 iteraciones=tiempo/Dt;
 
-%Simulacion
-for k=1:iteraciones
-   
-    %Aproximación de Euler con Laplaciano
-    x(:,k+1)=x(:,k)+Dt*(-KL*x(:,k));
-
-  
-end
-
-
-t=linspace(0,tiempo,iteraciones+1);
-% 
-% Subplot para el consenso en el eje x
-subplot(1, 2, 1);
-hold on;
-for i = 1:2:size(x, 1) % Consenso en x
-     plot(t, x(i, :));
-end
-hold off;
-xlabel('Tiempo (s)');
-ylabel('\xi_{x}');
-title('Consenso en el eje x');
-grid on;
-
-% Subplot para el consenso en el eje y
-subplot(1, 2, 2);
-hold on;
-for i = 2:2:size(x, 1) % Consenso en y
-    plot(t, x(i, :));
-end
-hold off;
-xlabel('Tiempo (s)');
-ylabel('\xi_{y}');
-title('Consenso en el eje y');
-grid on;
-
-
-%% Esta area es para el punto d)
-
-% Formación deseada (especificada en el mapa)
-delta1=[0;2];
-delta2=[-2;0];
-delta3=[0;-2];
-delta4=[2;0];
-delta = [delta1;delta2;delta3;delta4]; % deltas concatenadas
-P=zeros(2,1);
-
-% Initialize the state matrix to store the simulation results
+% Inicializar la matriz de estados
 x_forma = zeros(size(x, 1), iteraciones + 1);
 x_forma(:, 1) = x0;
+
+% Inicializar la matriz para almacenar el error relativo
+error_relativo = zeros(1, iteraciones + 1);
+
+% Calcular el error inicial
+error_relativo(1) = norm(KL * x0 + delta);
 
 % Simulacion
 for k = 1:iteraciones
     %Aproximación de Euler con Laplaciano
-    x_forma(:, k+1) = x_forma(:, k) + Dt * (-KL * (x_forma(:, k) - delta));
+    x_forma(:, k+1) = x_forma(:, k) - Dt * (KL * x_forma(:, k) + delta);
+    % Calcular el error en cada iteración
+    error_relativo(k + 1) = norm(KL * x_forma(:, k + 1) + delta);
 end
 
-% Tiempo para ploteos
-t = linspace(0, tiempo, iteraciones + 1);
-
-% Errores de consenso
+% Graficar el error relativo respecto al tiempo
+t = 0:Dt:tiempo;
 figure;
-subplot(1, 2, 1);
-hold on;
-for i = 1:2:size(x_forma, 1) % Error de consenso en x
-     plot(t, x_forma(i, :)-delta(i));
-end
-hold off;
+plot(t, error_relativo);
 xlabel('Tiempo (s)');
-ylabel('e_{x}');
-title('Error de consenso en el eje x');
-grid on;
-subplot(1, 2, 2);
-hold on;
-for i = 2:2:size(x_forma, 1) % Error de consenso en y
-    plot(t, x_forma(i, :)-delta(i));
-end
-hold off;
-xlabel('Tiempo (s)');
-ylabel('e_{y}');
-title('Error de consenso en el eje y');
+ylabel('Error relativo');
+title('Error relativo de la formación respecto al tiempo');
 grid on;
 
 
@@ -145,3 +101,4 @@ ylabel('Posición en y');
 title('Trayectorias de los agentes en el plano xy');
 axis equal;
 grid on;
+
