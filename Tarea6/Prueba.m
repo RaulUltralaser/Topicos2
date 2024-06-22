@@ -1,5 +1,5 @@
-clear all 
 clc 
+clearvars
 close all
 
 A = [ 0  1  0  0 

@@ -19,8 +19,8 @@ I=eye(2);
 KL=kron(L,I);
 
 % Definir las condiciones inciales para las coordenadas por separado
-x_x = [0; 0; 0; 0]; %Esto es en x
-x_y = [0; 0; 0; 0]; %Esto es en y
+x_x = [2; 1; 4; 10]; %Esto es en x
+x_y = [5; 6; 10; 0]; %Esto es en y
 
 % Inicializar el vector
 x = zeros(2 * length(x_x), 1);
@@ -31,6 +31,7 @@ for i = 1:length(x_x)
     x(2*i) = x_y(i);
 end
 x0=x;
+
 
 %Datos de la simulacion
 %periodo de muestreo
@@ -44,11 +45,14 @@ for k=1:iteraciones
     %Aproximación de Euler con Laplaciano
     x(:,k+1)=x(:,k)+Dt*(-KL*x(:,k));
 
-  
+    
 end
 
 
+
+
 t=linspace(0,tiempo,iteraciones+1);
+
 % 
 % Subplot para el consenso en el eje x
 subplot(1, 2, 1);
@@ -89,14 +93,33 @@ P=zeros(2,1);
 x_forma = zeros(size(x, 1), iteraciones + 1);
 x_forma(:, 1) = x0;
 
+
+% Inicializar la matriz para almacenar el error relativo
+error_relativo = zeros(1, iteraciones + 1);
+
+% Calcular el error inicial
+error_relativo(1) = norm(KL * x0 - delta);
+
 % Simulacion
 for k = 1:iteraciones
     %Aproximación de Euler con Laplaciano
     x_forma(:, k+1) = x_forma(:, k) + Dt * (-KL * (x_forma(:, k) - delta));
+
+    % Calcular el error en cada iteración
+    error_relativo(k + 1) = norm(KL * x_forma(:, k + 1) - delta);
 end
 
 % Tiempo para ploteos
 t = linspace(0, tiempo, iteraciones + 1);
+
+% Graficar el error relativo respecto al tiempo
+% t = 0:Dt:tiempo;
+figure;
+plot(t, error_relativo);
+xlabel('Tiempo (s)');
+ylabel('Error relativo');
+title('Error relativo de la formación respecto al tiempo');
+grid on;
 
 % Errores de consenso
 figure;

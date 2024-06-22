@@ -1,16 +1,29 @@
-clear all 
 clc 
+clearvars
 close all
 
-A = [ 0  1  0  0 
-      1  0  1  0 
-      0  1  0  0 
-      0  0  1  0 ];
 
-Lg_b = [ 1 -1  0  0 
-        -1  2 -1  0 
-         0 -1  1  0 
-         0  0 -1  1 ];
+%Para primer punto
+% A = [ 0  1  0  0 
+%       1  0  1  0 
+%       0  1  0  0 
+%       0  0  1  0 ];
+% 
+% Lg_b = [ 1 -1  0  0 
+%         -1  2 -1  0 
+%          0 -1  1  0 
+%          0  0 -1  1 ];
+% Para el segundo punto
+A=[0 0 0 0
+   1 0 0 0
+   0 1 0 0
+   0 0 1 0];
+
+Lg_b=[0 0  0 0
+     -1 1  0 0
+      0 -1 1 0
+      0 0 -1 1]; 
+
 eig(Lg_b)
 I = eye(2);
 I2 = zeros(8,8);
@@ -28,8 +41,8 @@ g = 1;
 alpha = 1;
 
 % Condiciones iniciales de los agentes en x e y 
-x_init = [ 0; -4;  0;  4 ];  % Condiciones iniciales en x
-y_init = [ 2;  0; -4;  0 ];  % Condiciones iniciales en y
+x_init = [ 2; -4;  6;  8 ];  % Condiciones iniciales en x
+y_init = [ 2;  -8; -4;  -6 ];  % Condiciones iniciales en y
 
 % Número de agentes
 num_agents = length(x_init);
