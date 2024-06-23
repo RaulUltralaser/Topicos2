@@ -76,6 +76,7 @@ for i = 1:num_agents
     d(2*i) = d_y(i);
 end
 
+
 x = x0;
 
 % Inicializar la matriz para almacenar el error relativo
