@@ -44,7 +44,6 @@ for k=1:iteraciones
    
     %Aproximación de Euler con Laplaciano
     x(:,k+1)=x(:,k)+Dt*(-KL*x(:,k));
-
     
 end
 
