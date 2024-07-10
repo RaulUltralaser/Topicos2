@@ -3,16 +3,20 @@ clearvars
 close all
 
 % Parámetros iniciales
-l = 1; % Distancia del centro del robot al punto de control
+l = .5; % Distancia del centro del robot al punto de control
 z = [2; 2]; % Condiciones iniciales
-theta = 90; % Ángulo inicial (puede ser en grados)
-K = .5; % Ganancia del controlador (ajusta según sea necesario)
+Angulo = 90; % Ángulo inicial ( en grados)
+K = [0.1 0; 0 0.1]; % Ganancia del controlador (ajusta según sea necesario)
+
 
 % Datos de la simulación
 Dt = 0.01; % Periodo de muestreo
 tiempo = 15; % Duración de la simulación en segundos
 iteraciones = tiempo / Dt;
 
+%Inicializar el angulo theta
+theta=zeros(1,iteraciones+1);
+theta(1,1)=deg2rad(Angulo);
 % Inicializar trayectorias
 z_hist = zeros(2, iteraciones+1);
 z_hist(:, 1) = z;
@@ -52,10 +56,14 @@ t=linspace(0,tiempo,iteraciones);
 
 % Gráfica de resultados
 figure;
+hold on
 plot(z_hist(1, :), z_hist(2, :));
+quiver(z_hist(1, 1), z_hist(2, 1), cos(theta(1)), sin(theta(1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
+quiver(z_hist(1, end), z_hist(2, end), cos(theta(end)), sin(theta(end)), 0.1, 'g', 'LineWidth', .1, 'MaxHeadSize', 2);
 xlabel('x');
 ylabel('y');
 title('Trayectoria del robot no holónimo');
+hold off
 grid on;
 
 figure
