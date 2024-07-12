@@ -46,7 +46,7 @@ for k = 1:iteraciones
     ex(k)=z(1,k);
     ey(k)=z(2,k);
     
-    % Guardar el historial de posiciones
+    % Guardar el historial de valore para graficar
     z_hist(:, k+1) = z(:,k+1);
     v_hist(k)=v;
     w_hist(k)=w;
