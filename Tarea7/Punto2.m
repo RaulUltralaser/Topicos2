@@ -11,10 +11,15 @@ z = [2; 1; -1; -2; 2; -2; 2; -1]; % Cada columna es [x; y] de un robot
 Angulo = [90; 45; -45; -90]; % Ángulos dados en grados
 
 % Matriz Laplaciana de un grafo dirigido en ciclo para 4 robots
-L = [ 1  0  0 -1;
-     -1  1  0  0;
-      0 -1  1  0;
-      0  0 -1  1];
+% L = [ 1  0  0 -1;
+%      -1  1  0  0;
+%       0 -1  1  0;
+%       0  0 -1  1];
+%Laplaciano grafo no dirigido
+L=[2 -1  0 -1;
+  -1  2 -1  0;
+   0 -1  2 -1;
+  -1  0 -1  2];
 I=eye(2);
 
 % Datos de la simulación
@@ -33,7 +38,8 @@ theta(:, 1) = deg2rad(Angulo);
 v_hist = zeros(4, iteraciones);
 w_hist = zeros(4, iteraciones);
 
-
+evx_hist = zeros(4,iteraciones);
+evy_hist = zeros(4,iteraciones);
 
 % Simulación
 for k = 1:iteraciones
@@ -63,6 +69,8 @@ for k = 1:iteraciones
     z_hist(:, k+1) = z(:,k+1);
     v_hist(:,k)=v';
     w_hist(:,k)=w';
+    evx_hist(:,k)=[ev(1);ev(3);ev(5);ev(7)];
+    evy_hist(:,k)=[ev(2);ev(4);ev(6);ev(8)];
 end
 
 t = linspace(0, tiempo, iteraciones);
@@ -87,5 +95,57 @@ ylabel('y');
 title('Trayectoria del robot no holónomo');
 hold off
 grid on;
+
+
+figure
+subplot(1,2,1)
+plot(t,evx_hist)
+xlabel('t');
+ylabel('error');
+title('Error en el eje x');
+grid on
+subplot(1,2,2)
+plot(t,evy_hist)
+xlabel('t');
+ylabel('error');
+title('Error en el eje x');
+grid on
+
+
+figure
+hold on
+subplot(1,2,1)
+plot(t,v_hist)
+xlabel('t');
+ylabel('v');
+title('Ley de control v');
+grid on
+subplot(1,2,2)
+plot(t,w_hist)
+xlabel('t');
+ylabel('w');
+title('Ley de control w');
+grid on
+hold off
+
+%Esto es para tener referencia de los grafos
+An=[0 0 0 1;
+    1 0 0 0;
+    0 1 0 0;
+    0 0 1 0];
+Gn=digraph(An');
+
+figure
+plot(Gn, 'Layout', 'force', 'EdgeLabel', Gn.Edges.Weight);
+
+A=[0 1 0 1;
+   1 0 1 0;
+   0 1 0 1;
+   1 0 1 0];
+
+G=graph(A);
+
+figure
+plot(G);
 
 

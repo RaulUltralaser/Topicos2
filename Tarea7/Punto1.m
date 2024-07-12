@@ -4,9 +4,9 @@ close all
 
 % Parámetros iniciales
 l = .5; % Distancia del centro del robot al punto de control
-z = [2; 2]; % Condiciones iniciales
-Angulo = 90; % Ángulo inicial ( en grados)
-K = [0.1 0; 0 0.1]; % Ganancia del controlador (ajusta según sea necesario)
+z = [-1; -2]; % Condiciones iniciales punto 1
+Angulo = 45; % Angulo inicial ( en grados) Condicion uno
+K = [0.1 0; 0 0.1]; % Ganancia del controlador 
 
 
 % Datos de la simulación
