@@ -11,15 +11,15 @@ z = [2; 1; -1; -2; 2; -2; 2; -1]; % Cada columna es [x; y] de un robot
 Angulo = [90; 45; -45; -90]; % Ángulos dados en grados
 
 % Matriz Laplaciana de un grafo dirigido en ciclo para 4 robots
-% L = [ 1  0  0 -1;
-%      -1  1  0  0;
-%       0 -1  1  0;
-%       0  0 -1  1];
+L = [ 1  0  0 -1;
+     -1  1  0  0;
+      0 -1  1  0;
+      0  0 -1  1];
 %Laplaciano grafo no dirigido
-L=[2 -1  0 -1;
-  -1  2 -1  0;
-   0 -1  2 -1;
-  -1  0 -1  2];
+% L=[2 -1  0 -1;
+%   -1  2 -1  0;
+%    0 -1  2 -1;
+%   -1  0 -1  2];
 I=eye(2);
 
 % Datos de la simulación
@@ -63,7 +63,7 @@ for k = 1:iteraciones
     w=[u(2),u(4),u(6),u(8)];
     % Dinámica del sistema
     z(:,k+1) = z(:,k)+Dt*(M*u);
-    theta(:,k+1) = theta(:,k)+Dt*(w*theta(:,k)) ; % Actualización del ángulo
+    theta(:,k+1) = theta(:,k)+Dt*(w') ; % Actualización del ángulo
 
     % Guardar el historial de valores para grafica
     z_hist(:, k+1) = z(:,k+1);

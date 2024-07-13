@@ -3,10 +3,10 @@ clearvars
 close all
 
 % Parámetros iniciales
-l = .5; % Distancia del centro del robot al punto de control
-z = [-1; -2]; % Condiciones iniciales punto 1
-Angulo = 45; % Angulo inicial ( en grados) Condicion uno
-K = [0.1 0; 0 0.1]; % Ganancia del controlador 
+l = 1; % Distancia del centro del robot al punto de control
+z = [2; -1]; % Condiciones iniciales punto 1
+Angulo = 0; % Angulo inicial ( en grados) Condicion uno
+K = [1 0; 0 1]; % Ganancia del controlador 
 
 
 % Datos de la simulación
@@ -32,15 +32,15 @@ for k = 1:iteraciones
          sin(theta(k)) l*cos(theta(k))];
      
     % Controlador
-    u = M \ (-K * z); % u = M^{-1}(-kz)
+    u = M \ (-K * z(:,k)); % u = M^{-1}(-kz)
     
     % Actualizar el estado del sistema
     v = u(1);
     w = u(2);
     
     % Dinámica del sistema
-    z(:,k+1) = z(:,k)-Dt*(M*z(:,k));
-    theta(k+1) = theta(k)-Dt*(w*theta(k)) ; % Actualización del ángulo
+    z(:,k+1) = z(:,k)+Dt*(M*u);
+    theta(k+1) = theta(k)+Dt*(w) ; % Actualización del ángulo
 
     %Errores
     ex(k)=z(1,k);
