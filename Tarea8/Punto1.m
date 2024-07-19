@@ -10,16 +10,12 @@ K = 1*eye(8); % Ganancia del controlador
 z = [2; 1; 1.95; .95; 3; -1; 2; -2]; % Cada columna es [x; y] de un robot
 Angulo = [90; 0; -45; -90]; % Ángulos dados en grados
 
-% Matriz Laplaciana de un grafo dirigido en ciclo para 4 robots
-L = [ 1  0  0 -1;
-     -1  1  0  0;
-      0 -1  1  0;
-      0  0 -1  1];
+
 %Laplaciano grafo no dirigido
-% L=[2 -1  0 -1;
-%   -1  2 -1  0;
-%    0 -1  2 -1;
-%   -1  0 -1  2];
+L=[2 -1  0 -1;
+  -1  2 -1  0;
+   0 -1  2 -1;
+  -1  0 -1  2];
 I=eye(2);
 
 % Datos de la simulación

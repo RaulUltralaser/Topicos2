@@ -1,106 +1,122 @@
-% Parámetros iniciales
+clc;
+clearvars;
+close all;
+
+% Parámetros iniciales  tienen que ser mayores a cero
 l = 0.5; % Distancia del centro del robot al punto de control
-K = 1*eye(8); % Ganancia del controlador
-d_min = 0.5; % Umbral de distancia para evitar colisiones
-k_repulsion = 1; % Constante de repulsión
+k_x = 1; % Ganancia del controlador para error en x
+k_y = 1; % Ganancia del controlador para error en y
+k_theta = 1; % Ganancia del controlador para error en theta 
+kappa = 1; % Constante para el termino feed-forward 
+n=2;       %Duración del Bump
+tau= 1;    %Constante para el termino feed-forward
+R = 1.5; % Rango de detección del sensor
+r = 0.5; % Distancia mínima aceptable a los obstáculos
+agentes=4; %Número de agentes
+
+% Laplaciano grafo no dirigido
+L = [2 -1  0 -1;
+    -1  2 -1  0;
+     0 -1  2 -1;
+    -1  0 -1  2];
+I = eye(2);
 
 % Inicializar condiciones iniciales para 4 robots
-z = [2; 1; 1.95; .95; 3; -1; 2; -2]; % Cada columna es [x; y] de un robot
-Angulo = [90; 0; -45; -90]; % Ángulos dados en gradoss
+z = [2, 1;
+     1.95, 0.95;
+     3, -1;
+     2, -2]; % Cada fila es [x, y] de un robot
+theta = deg2rad([90, 0, -45, -90]); % Ángulos iniciales en radianes
 
-% Matriz Laplaciana de un grafo dirigido en ciclo para 4 robots
-L = [ 1  0  0 -1;
-     -1  1  0  0;
-      0 -1  1  0;
-      0  0 -1  1];
-
-I=eye(2);
 
 % Datos de la simulación
 Dt = 0.01; % Periodo de muestreo
 tiempo = 30; % Duración de la simulación en segundos
 iteraciones = tiempo / Dt;
 
+%inicializo v para poder calcular v_d_i
+v_star=zeros(agentes,iteraciones);
+w_star=zeros(agentes,iteraciones);
+
 % Inicializar trayectorias
-z_hist = zeros(8, iteraciones+1);
-z_hist(:, 1) = z;
-
-theta = zeros(4, iteraciones+1);
-theta(:, 1) = deg2rad(Angulo);
-
-v_hist = zeros(4, iteraciones);
-w_hist = zeros(4, iteraciones);
-
-evx_hist = zeros(4,iteraciones);
-evy_hist = zeros(4,iteraciones);
+z_hist = zeros(4, 2, iteraciones+1);
+theta_hist = zeros(4, iteraciones+1);
+z_hist(:, :, 1) = z;
+theta_hist(:, 1) = theta;
 
 % Simulación
 for k = 1:iteraciones
-    % Calcular la matriz M para cada robot en cada iteración
-    M1 = [cos(theta(1,k)) -l*sin(theta(1,k));
-         sin(theta(1,k)) l*cos(theta(1,k))];
-    M2 = [cos(theta(2,k)) -l*sin(theta(2,k));
-         sin(theta(2,k)) l*cos(theta(2,k))];
-    M3 = [cos(theta(3,k)) -l*sin(theta(3,k));
-         sin(theta(3,k)) l*cos(theta(3,k))];
-    M4 = [cos(theta(4,k)) -l*sin(theta(4,k));
-         sin(theta(4,k)) l*cos(theta(4,k))];
-    M = blkdiag(M1, M2, M3, M4);
-
-    ev = -kron(L,I)*z(:,k);
-    u = M \ (K * ev);
-
-    % Separo la ley de control en lineal y rotacional
-    v = [u(1),u(3),u(5),u(7)];
-    w = [u(2),u(4),u(6),u(8)];
-
-    % Evasión de colisiones
-    for i = 1:4
-        for j = i+1:4
-            d_ij = norm(z(2*i-1:2*i, k) - z(2*j-1:2*j, k));
-            if d_ij < d_min
-                % Calcular fuerza de repulsión
-                F_repulsion = k_repulsion * (1/d_ij - 1/d_min) * (1/d_ij^2) * (z(2*i-1:2*i, k) - z(2*j-1:2*j, k))/d_ij;
-                % Actualizar velocidades
-                v(i) = v(i) - F_repulsion(1);
-                w(i) = w(i) - F_repulsion(2);
-                v(j) = v(j) + F_repulsion(1);
-                w(j) = w(j) + F_repulsion(2);
+    
+      M1=[cos(theta(k)) 0;
+         sin(theta(k)) 0;
+         0               1];
+      M2=[cos(theta(k)) 0;
+         sin(theta(k)) 0;
+         0               1];
+      M3=[cos(theta(k)) 0;
+         sin(theta(k))  0;
+         0               1];
+      M4=[cos(theta(k)) 0;
+         sin(theta(k))  0;
+         0               1];
+      
+      M = blkdiag(M1, M2, M3, M4);
+      
+      %TODO: no sé como chingados hacerle para que fijar el tiempo k0
+      for i=1:agentes
+          for j=1:agentes
+            if abs(v_star(i,k)-v_star(j,k)) >= kappa && i~=j
+                v_d_i=exp(-tau);
+            else
+                v_d_i=bumpFunc(tau,Dt,k,k0,n);
             end
-        end
-    end
+          end
+      end
 
-    % Dinámica del sistema
-    z(:,k+1) = z(:,k) + Dt * (M * [v(1); w(1); v(2); w(2); v(3); w(3); v(4); w(4)]);
-    theta(:,k+1) = theta(:,k) + Dt * (w'); % Actualización del ángulo
+      gamma=gammaFunc(theta_io,p_io);
+        
+      
 
-    % Guardar el historial de valores para graficar
-    z_hist(:, k+1) = z(:,k+1);
-    v_hist(:,k) = v';
-    w_hist(:,k) = w';
-    evx_hist(:,k) = [ev(1); ev(3); ev(5); ev(7)];
-    evy_hist(:,k) = [ev(2); ev(4); ev(6); ev(8)];
+      q_iu=(1-gamma)*q_id+gamma*q_ic;
+      
+      errores=[cos(theta(k)) sin(theta(k)) 0;
+               -sin(theta(k)) cos(theta(k)) 0;
+               0               0            1]*(q_iu-q_star);
+    
+      v_star=v_d_i*cos(e_theta)+k_x*e_x;
+      w_star=k_y*v_d_i*e_y*(sin(e_theta)/e_theta)+k_theta*e_theta;
+
+      u_i_star=[v_i_star w_i_star]';
+
+      
+    
 end
 
-t = linspace(0, tiempo, iteraciones);
+% t = linspace(0, tiempo, iteraciones);
+% 
+% % Gráfica de resultados
+% figure;
+% hold on;
+% colors = ['r', 'b', 'g', 'k'];
+% for i = 1:4
+%     plot(squeeze(z_hist(i, 1, :)), squeeze(z_hist(i, 2, :)), colors(i));
+%     quiver(z_hist(i, 1, 1), z_hist(i, 2, 1), cos(theta_hist(i, 1)), sin(theta_hist(i, 1)), 0.1, colors(i), 'LineWidth', 0.1, 'MaxHeadSize', 1);
+%     quiver(z_hist(i, 1, end), z_hist(i, 2, end), cos(theta_hist(i, end)), sin(theta_hist(i, end)), 0.1, colors(i), 'LineWidth', 0.1, 'MaxHeadSize', 2);
+% end
+% xlabel('x');
+% ylabel('y');
+% title('Trayectoria del robot no holónomo');
+% hold off;
+% grid on;
 
-% Gráfica de resultados
-figure;
-hold on
-plot(z_hist(1, :), z_hist(2, :),'r');
-quiver(z_hist(1, 1), z_hist(2, 1), cos(theta(1,1)), sin(theta(1,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
-quiver(z_hist(1, end), z_hist(2, end), cos(theta(1,end)), sin(theta(1,end)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 2);
-plot(z_hist(3, :), z_hist(4, :),'b');
-quiver(z_hist(3, 1), z_hist(4, 1), cos(theta(2,1)), sin(theta(2,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
-quiver(z_hist(3, end), z_hist(4, end), cos(theta(2,end)), sin(theta(2,end)), 0.1, 'b', 'LineWidth', .1, 'MaxHeadSize', 2);
-plot(z_hist(5, :), z_hist(6, :),'g');
-quiver(z_hist(5, 1), z_hist(6, 1), cos(theta(3,1)), sin(theta(3,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
-quiver(z_hist(5, end), z_hist(6, end), cos(theta(3,end)), sin(theta(3,end)), 0.1, 'g', 'LineWidth', .1, 'MaxHeadSize', 2);
-plot(z_hist(7, :), z_hist(8, :),'k');
-quiver(z_hist(7, 1), z_hist(8, 1), cos(theta(4,1)), sin(theta(4,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
-quiver(z_hist(7, end), z_hist(8, end), cos(theta(4,end)), sin(theta(4,end)), 0.1, 'k', 'LineWidth', .1, 'MaxHeadSize', 2);
-xlabel('x');
-ylabel('y');
-title('Trayectoria del robot no holónomo');
-hold off
-grid on;
+
+function sigma=bumpFunc(tau,Dt,k,k0,n)
+
+    t=Dt*k;   %Tiempo de la simulación
+    t0=Dt*k0; %Tiempo en el que se dispara la función bump
+    if t0 < t && t <= n + t0
+        sigma = exp(-tau / (1 - ((t - t0) / n)^2));
+    else
+        sigma = 0;
+    end
+end
