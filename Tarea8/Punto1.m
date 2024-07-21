@@ -92,32 +92,32 @@ title('Trayectoria del robot no holónomo');
 hold off
 grid on;
 
-% figure
-% subplot(1,2,1)
-% plot(t,evx_hist)
-% xlabel('t');
-% ylabel('error');
-% title('Error en el eje x');
-% grid on
-% subplot(1,2,2)
-% plot(t,evy_hist)
-% xlabel('t');
-% ylabel('error');
-% title('Error en el eje x');
-% grid on
-% 
-% figure
-% hold on
-% subplot(1,2,1)
-% plot(t,v_hist)
-% xlabel('t');
-% ylabel('v');
-% title('Ley de control v');
-% grid on
-% subplot(1,2,2)
-% plot(t,w_hist)
-% xlabel('t');
-% ylabel('w');
-% title('Ley de control w');
-% grid on
-% hold off
+figure
+subplot(1,2,1)
+plot(t,evx_hist)
+xlabel('t');
+ylabel('error');
+title('Error en el eje x');
+grid on
+subplot(1,2,2)
+plot(t,evy_hist)
+xlabel('t');
+ylabel('error');
+title('Error en el eje x');
+grid on
+
+figure
+hold on
+subplot(1,2,1)
+plot(t,v_hist)
+xlabel('t');
+ylabel('v');
+title('Ley de control v');
+grid on
+subplot(1,2,2)
+plot(t,w_hist)
+xlabel('t');
+ylabel('w');
+title('Ley de control w');
+grid on
+hold off
