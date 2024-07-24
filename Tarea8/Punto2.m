@@ -83,20 +83,9 @@ for k = 1:iteraciones
       for i = 1:agentes
         for j = 1:agentes
             % Verificar si existe una conexión entre agentes usando L
-            if L(i, j) == -1 
-                % Índices en sump para el agente i
-                switch i
-                    case 1
-                        idx_i = 1:2; % Índices para el agente 1 (sump1_x, sump1_y)
-                    case 2
-                        idx_i = 3:4; % Índices para el agente 2 (sump2_x, sump2_y)
-                    case 3
-                        idx_i = 5:6; % Índices para el agente 3 (sump3_x, sump3_y)
-                    case 4
-                        idx_i = 7:8; % Índices para el agente 4 (sump4_x, sump4_y)
-                end
+            if L(i, j) == -1         
                 % Sumar las coordenadas x e y del agente j a las correspondientes del agente i
-                sump(idx_i) = sump(idx_i) + p_star(idx_i,k);
+                sump(2*i-1:2*1) = sump(2*i-1:2*1) + p_star(2*i-1:2*1,k);
             end
         end
      end
