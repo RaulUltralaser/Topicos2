@@ -1,444 +1,302 @@
-clc;
-clearvars;
-close all;
+clearvars 
+close all
+clc
 
-% Parámetros iniciales  tienen que ser mayores a cero
-l = 1; % Distancia del centro del robot al punto de control
-k_x = 1; % Ganancia del controlador para error en x
-k_y = 1; % Ganancia del controlador para error en y
-k_theta = 1; % Ganancia del controlador para error en theta 
-kappa = 3; % Constante para el termino feed-forward 
-n=10;       %Duración del Bump
-tau= 1;    %Constante para el termino feed-forward
-R = 1.5; % Rango de detección del sensor
-r = .5; % Distancia mínima aceptable a los obstáculos [x y] Debería ser <l
-agentes=4; %Número de agentes
+% Parámetros iniciales
+l = 0.5; % Distancia del centro del robot al punto de control
+% Ganancias del controlador
+k1=1;
+k2=1;
+k3=1; 
+k4=2;
+k0=2;
+num_agentes = 4; %Numero de agentes
+Rang=0.1;        %Establece el rango de sensado para todos los agentes
+ro=Rang;         % Es el rango del obstáculo
+kappa=1;         %Esto es para el feed forward term
 
-% Laplaciano grafo no dirigido
-L = [2 -1  0 -1;
-    -1  2 -1  0;
-     0 -1  2 -1;
-    -1  0 -1  2];
-I1 = eye(1);
-I2 = eye(2);
-%Estos son los Di (Es decir, la raiz del grado de cada nodo
-%, pero todos son iguales entonces solo pongo uno)
-Di=[sqrt(2)];
-D=Di*eye(agentes);
-%Laplaciano normalizado
-Ld=inv(D)\L*inv(D); %inv(D)*L*inv(D)
+%Matriz Laplaciana
+L=[1  0  0 -1;
+  -1  1  0  0;
+   0 -1  1  0;
+   0  0 -1  1];
+I = eye(3);
 
-kronp=kron(Ld,I2);
-krontheta=kron(Ld,I1);
-
-% Inicializar condiciones iniciales para 4 robots
-p_Inicial=[2;1;1.95; 0.95;3; -1; 2; -2]; %Tendrían que ser aleatorias, pero poner dos juntas pa que choquen (virtuales)
-thetaInicial = deg2rad([270, 360, 90, 180]); % Ángulos iniciales en radianes
-z = l*[cos(thetaInicial(1)); sin(thetaInicial(1)); cos(thetaInicial(2)); sin(thetaInicial(2)); cos(thetaInicial(3)); sin(thetaInicial(3)); cos(thetaInicial(4)); sin(thetaInicial(4))]; % Desplazamientos que me dan la formación en rombo
+%Posiciones inciales
+x=[1; 2; 3; 2];
+y=[1; 1; -1; -2];
+Angulo=[0; 0; 90; 180];
 
 % Datos de la simulación
-Dt = 0.01; % Periodo de muestreo
-tiempo = 100; % Duración de la simulación en segundos
-iteraciones = tiempo / Dt;
+h = 0.01; % Periodo de muestreo
+tiempo = 50; % Duración de la simulación en segundos
+iteraciones = round(tiempo / h);
 
-%inicializo v para poder calcular v_d_i
-v_star=zeros(agentes,iteraciones);
-w_star=zeros(agentes,iteraciones);
+%Parámetros para la función bump
+tau = 1;          
+t0 = 0;           % Tiempo inicial en el que se quiere que inicie la función
+n = tiempo;           % Duración en segundos durante la cual la función debe estar activa
+bump=zeros(1,iteraciones);
 
-%Incicializo todos los valores
-p_star=zeros(8,iteraciones+1); %Agentes reales p_star
-p_star(:,1)=p_Inicial+z;
-p=zeros(8,iteraciones+1);      %Agentes virtuales p
-p(:,1)=p_Inicial; 
-theta=zeros(4,iteraciones+1);
-theta(:,1)=thetaInicial;
-theta_star=zeros(4,iteraciones);
-theta_star(:,1)=thetaInicial;
-theta_io=zeros(4,iteraciones);
-theta_ic=zeros(4,iteraciones);
-theta_bario=zeros(4,iteraciones);
-q_star=zeros(12,iteraciones);  %Definido como q_stari=[p_stari theta_star]
-q_star(:,1)=[p_star(1:2,1);theta_star(1,1);p_star(3:4,1);theta_star(2,1);p_star(5:6,1);theta_star(3,1);p(7:8,1);theta_star(4,1)];
-q_id=zeros(12,iteraciones);
-q_ic=zeros(12,iteraciones);
-q_iu=zeros(12,iteraciones);
-p_io=zeros(8,iteraciones);
-p_ia=p_io;
-p_ic=p_io;
-e=zeros(12,iteraciones);
-%HAGO USO DE u_i_star antes de calcularlo entonces lo inicializo en zeros
-u_i_star=zeros(8,iteraciones+1);
-t0_establecido=false;
-% Simulación
-for k = 1:iteraciones
-        
-%       %Aproximación de Euler de p estrella
-%       p_star(:,k+1)=p_star(:,k)+Dt*(-kronp*p_star(:,k));
-        
-%       %Aproximacion de Euler de theta estrella
-%       theta(:,k+1)=theta(:,k)+Dt*(-krontheta*theta(:,k));
+% Inicializar el ángulo theta y trayectorias de cada agente
+theta = zeros(num_agentes, iteraciones + 1);
+x_hist = zeros(num_agentes, iteraciones + 1);
+y_hist = zeros(num_agentes, iteraciones + 1);
+z_hist = zeros(3 * num_agentes, iteraciones + 1);
+q_hist = zeros(3 * num_agentes, 1);
+alpha_hist=zeros(3 * num_agentes, iteraciones + 1);
 
-     sump=zeros(8,1);
-     % Bucle para calcular la suma de p
-      for i = 1:agentes
-        for j = 1:agentes
-            % Verificar si existe una conexión entre agentes usando L
-            if L(i, j) == -1         
-                % Sumar las coordenadas x e y del agente j a las correspondientes del agente i
-                sump(2*i-1:2*1) = sump(2*i-1:2*1) + p_star(2*i-1:2*1,k);
-            end
-        end
-     end
-    
-      sumtheta=zeros(4,1);
-      for i = 1:agentes
-            for j = 1:agentes
-                %Verifico si existe una conexion entre agentes usando L
-                if L(i, j) == -1
-                    sumtheta(i) = sumtheta(i)+theta_star(j,k);
-                end
-            end
-      end
-     
-      %Calculo q_id
-      q_id(:,k)=[(Di\sump*inv(Di))' (Di\sumtheta*inv(Di))']';
-      %Lo acomodo para que queden como [x y theta x y theta...]
-      q_id(:,k)=[q_id(1:2,k);q_id(3,k);q_id(4:5,k);q_id(6,k);q_id(7:8,k);q_id(9,k);q_id(10:11,k);q_id(12,k)];
-    
+Xi1 = zeros(3 * num_agentes, iteraciones + 1);
+qid=zeros(3*num_agentes,iteraciones + 1);
+qiu=zeros(3*num_agentes,iteraciones + 1);
+qic=zeros(3*num_agentes,iteraciones + 1);
+ei=zeros(3,iteraciones + 1);
+vi=zeros(num_agentes,iteraciones+1);
+wi=zeros(num_agentes,iteraciones+1);
+dm=zeros(num_agentes,iteraciones+1);
+vl=zeros(num_agentes,iteraciones+1);
 
-      %Para calcular el vector de avoidance checo la distancia entre
-      %agentes virtuales uno por uno
-      for i= 1:agentes
-          switch i
-                    case 1
-                        id_i = 1:2; % Índices para el agente 1 
-                    case 2
-                        id_i = 3:4; % Índices para el agente 2 
-                    case 3
-                        id_i = 5:6; % Índices para el agente 3 
-                    case 4
-                        id_i = 7:8; % Índices para el agente 4 
-           end
-          for j= 1:agentes
-              if i~= j
-                switch j
-                    case 1
-                        id_j = 1:2; % Indices para el agente 1 
-                    case 2
-                        id_j = 3:4; % Indices para el agente 2 
-                    case 3
-                        id_j = 5:6; % Indices para el agente 3 
-                    case 4
-                        id_j = 7:8; % Indices para el agente 4 
-                end
-                p_i=p_star(id_i,k)-z(id_i);
-                p_o=p_star(id_j,k)-z(id_j);
-                if norm(p_i-p_o)<r
-                    p_io(id_i,k)=p_i-p_o;
-                end
-              end
-          end
-      end
-      
-      %Y el bearing angulo lo calculo con la funcin atan2
-      for i=1:agentes
-          switch i
-            case 1
-                id = [1 2]; % Índices para el agente 1 (sump1_x, sump1_y)
-            case 2
-                id = [3 4]; % Índices para el agente 2 (sump2_x, sump2_y)
-            case 3
-                id = [5 6]; % Índices para el agente 3 (sump3_x, sump3_y)
-            case 4
-                id = [7 8]; % Índices para el agente 4 (sump4_x, sump4_y)
-           end
-        theta_io(i,k)=atan2(-p_io(id(2)),-p_io(id(1)));
-      end 
-      
-      %Calculo el angulo relativo entre el robot y el obstaculo
-      theta_bario(:,k)=theta(:,k+1)-theta_io(:,k);
+%Se declaran vaiables auxiliares donde se almacenarán la diferencia de las
+%posiciones de los agentes
+pi_ox=zeros(num_agentes,num_agentes);
+pi_oy=zeros(num_agentes,num_agentes);
+norm_pi_o=zeros(num_agentes,num_agentes);
+thetaio=zeros(num_agentes,num_agentes);
+vthetaio=zeros(num_agentes,num_agentes);
+% Se define el parámetro de desplazamiento z
+z=1;
 
-      % Calculo vector atractor
-      % Bucle para calcular la suma de p (Este es con los agentes reales)
-      sump=zeros(8,1);
-      for i = 1:agentes
-        for j = 1:agentes
-            % Verificar si existe una conexión entre agentes usando L
-            if L(i, j) == -1 
-                % Índices en sump para el agente i
-                switch i
-                    case 1
-                        idx_i = 1:2; % Índices para el agente 1 (sump1_x, sump1_y)
-                    case 2
-                        idx_i = 3:4; % Índices para el agente 2 (sump2_x, sump2_y)
-                    case 3
-                        idx_i = 5:6; % Índices para el agente 3 (sump3_x, sump3_y)
-                    case 4
-                        idx_i = 7:8; % Índices para el agente 4 (sump4_x, sump4_y)
-                end
-                % Sumar las coordenadas x e y del agente j a las correspondientes del agente i
-                sump(idx_i) = sump(idx_i) + p_star(idx_i,k);
-            end
-        end
-     end
-      p_ia(:,k)=(Di\sump*inv(Di))-p_star(:,k);
-      
-      %Calculo el final del vector de avoidance que corresponde a p_ic
-      for i=1:agentes
-        switch i
-            case 1
-                id = 1:2; % Índices para el agente 1 
-            case 2
-                id = 3:4; % Índices para el agente 2 
-            case 3
-                id = 5:6; % Índices para el agente 3 
-            case 4
-                id = 7:8; % Índices para el agente 4 
-        end
-        p_ic(id,k)=find_p_ic(p_io(id,k),p_ia(id,k));
-      end
+%Desplazamientos deseados
+ delta= [0; % d41 x
+         2; % d41 y 
+         0;
+        -2; % d12 x
+         0; % d12 y
+         0;
+         0; % d23 x
+        -2; % d23 y
+         0;
+         2; % d34 x
+         0; % d34 y
+         0];
 
-      %Calculo el angulo deseado
-      for i=1:agentes
-          switch i
-            case 1
-                id = [1 2]; % Índices para el agente 1 (sump1_x, sump1_y)
-            case 2
-                id = [3 4]; % Índices para el agente 2 (sump2_x, sump2_y)
-            case 3
-                id = [5 6]; % Índices para el agente 3 (sump3_x, sump3_y)
-            case 4
-                id = [7 8]; % Índices para el agente 4 (sump4_x, sump4_y)
-           end
-        theta_ic(i,k)=atan2(p_ic(id(2),k)-p_star(2,k),p_ic(id(1),k)-p_star(1,k));
-      end
-      
-      %Calculo q_ic y lo acomodo de modo [x_ic,y_ic,theta_ic]
-      q_ic(:,k)=[p_ic(1:2,k);theta(1,k);p_ic(3:4,k);theta(2,k);p_ic(5:6,k);theta(3,k);p_ic(7:8,k);theta(4,k)];
-
-      %Calculo de la funcion gamma para q_iu
-      for i=1:agentes
-        switch i
-            case 1
-                id = 1:2; % Indices para el agente 1 necesarias para gamma
-                idq = 1:3;% Indices para el agente 1 para q
-            case 2
-                id = 3:4; % Indices para el agente 2 necesarias para gamma 
-                idq = 4:6;% Indices para el agente 2 para q
-            case 3
-                id = 1:2; % Indices para el agente 3 necesarias para gamma
-                idq = 7:9;% Indices para el agente 3 para q
-            case 4
-                id = 1:2; % Indices para el agente 4 necesarias para gamma
-                idq = 10:12;% Indices para el agente 4 para q
-        end
-        gamma=gammaFunc(theta_bario(i,k),p_io(id,k),R,r);
-        q_iu(id,k)=(1-gamma)*q_id(id,k)+gamma*q_ic(id,k);
-      end
-      
-      %Genero la M
-      M1=[cos(theta(1,k+1)) 0;
-          sin(theta(1,k+1)) 0;
-          0               1];
-      M2=[cos(theta(2,k+1)) 0;
-          sin(theta(2,k+1)) 0;
-          0               1];
-      M3=[cos(theta(3,k+1)) 0;
-          sin(theta(3,k+1)) 0;
-          0               1];
-      M4=[cos(theta(4,k+1)) 0;
-          sin(theta(4,k+1)) 0;
-          0               1];
-      M=blkdiag(M1,M2,M3,M4);
-      %Aproximacion de Euler de q estrella
-      q_star(:,k+1)=q_star(:,k)+Dt*(M*u_i_star(:,k));
-      
-      %Calculo de los errores por separado
-      e1=[cos(theta(1,k)) sin(theta(1,k)) 0;
-         -sin(theta(1,k)) cos(theta(1,k)) 0;
-          0               0               1]*(q_iu(1:3,k)-q_star(1:3,k+1));
-      e2=[cos(theta(2,k)) sin(theta(2,k)) 0;
-         -sin(theta(2,k)) cos(theta(2,k)) 0;
-          0               0               1]*(q_iu(4:6,k)-q_star(4:6,k+1));
-      e3=[cos(theta(3,k)) sin(theta(3,k)) 0;
-         -sin(theta(3,k)) cos(theta(3,k)) 0;
-          0               0               1]*(q_iu(7:9,k)-q_star(7:9,k+1));
-      e4=[cos(theta(4,k)) sin(theta(4,k)) 0;
-         -sin(theta(4,k)) cos(theta(4,k)) 0;
-          0               0               1]*(q_iu(10:12,k)-q_star(10:12,k+1));
-    
-      %Junto los valores y los guardo para graficarlos
-      e(:,k)=[e1;e2;e3;e4];
-      
-      for i=1:agentes
-          switch i
-              case 1
-                xe=1;ye=2;thetae=3;
-              case 2
-                xe=4;ye=5;thetae=6;
-              case 3
-                xe=7;ye=8;thetae=9;
-              case 4
-                xe=10;ye=11;thetae=12;
-          end
-          for j=1:agentes
-            if abs(v_star(i,k)-v_star(j,k)) >= kappa && i~=j
-                v_d_i=exp(-tau);
-                t0_establecido=false;
-            else
-                t=k*Dt;
-                if ~t0_establecido
-                    % Establecer t0 la primera vez que entra en el else
-                    t0 = t;
-                    t0_establecido = true;
-                end
-                v_d_i=bumpFunc(tau,t,t0,n);
-            end
-          end
-          v_star(i,k)=v_d_i*cos(e(thetae,k))+k_x*e(xe,k);
-          if e(thetae,k)==0
-              operation=1;
-          else
-              operation=(sin(e(thetae,k))/e(thetae,k));
-          end
-          w_star(i,k)=k_y*v_d_i*e(ye,k)*operation+k_theta*e(thetae,k);
-      end
-
-      %Calculo y acomodo u_i_star para graficarlos despues
-      u_i_star(:,k+1)=[v_star(1,k) w_star(1,k) v_star(2,k) w_star(2,k) v_star(3,k) w_star(3,k) v_star(4,k) w_star(4,k)]';
-
-      p_star(:,k+1)=[q_star(1:2)'; q_star(4:5)';q_star(7:8)';q_star(10:11)'];
-      theta_star(:,k+1)=[q_star(3); q_star(6);q_star(9);q_star(12)'];
+for p = 1:num_agentes
+    theta(p, 1) = deg2rad(Angulo(p, 1));
+    x_hist(p, 1) = x(p, 1);
+    y_hist(p, 1) = y(p, 1);
+    % Organizar las posiciones y ángulos en el vector qid
+    qid(3 * p - 2, 1) = x(p, 1) + l * cos(theta(p, 1));       % Posición en x
+    qid(3 * p - 1, 1) = y(p, 1) + l * sin(theta(p, 1));       % Posición en y
+    qid(3 * p, 1) = theta(p, 1);       % Ángulo theta
+    z_hist(3 * p - 2, 1) = x_hist(p, 1) + l * cos(theta(p, 1));
+    z_hist(3 * p-1, 1) = y_hist(p, 1) + l * sin(theta(p, 1));
+    z_hist(3 * p, 1) = theta(p,1);
+    alpha_hist(3*p-2,1)=z_hist(3*p-2,1) + z * cos(theta(p, 1));
+    alpha_hist(3 * p-1, 1) = z_hist(3*p-1,1)+z * sin(theta(p, 1));
+    alpha_hist(3 * p, 1) = theta(p,1);
 end
 
-t = linspace(0, tiempo, iteraciones+1);
-% 
-% Gráfica de resultados
-figure;
-hold on;
-plot(q_star(1,:),q_star(2,:))
-quiver(q_star(1, 1), q_star(2, 1), cos(q_star(3,1)), sin(q_star(3,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
-quiver(q_star(1, end), q_star(2, end), cos(q_star(3,end)), sin(q_star(3,end)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 2);
-plot(q_star(4,:),q_star(5,:))
-quiver(q_star(4, 1), q_star(5, 1), cos(q_star(6,1)), sin(q_star(6,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
-quiver(q_star(4, end), q_star(5, end), cos(q_star(6,end)), sin(q_star(6,end)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 2);
-plot(q_star(7,:),q_star(8,:))
-quiver(q_star(7, 1), q_star(8, 1), cos(q_star(9,1)), sin(q_star(9,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
-quiver(q_star(7, end), q_star(8, end), cos(q_star(9,end)), sin(q_star(9,end)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 2);
-plot(q_star(10,:),q_star(11,:))
-quiver(q_star(10, 1), q_star(11, 1), cos(q_star(12,1)), sin(q_star(12,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
-quiver(q_star(10, end), q_star(11, end), cos(q_star(12,end)), sin(q_star(12,end)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 2);
+% Inicializar trayectorias de velocidad
+v_hist = zeros(num_agentes, iteraciones);
+w_hist = zeros(num_agentes, iteraciones);
+
+% Simulación
+for k = 1:iteraciones
+
+    %----- Xi es para calcular la diferencia entre la posición del punto de
+    %control alpha de los vecinos y el ángulo theta. Como solo queremos que lleguen a
+    %consenso, es un consenso simple considerando la evasión. Ojo el qiu
+    %contiene el vector de todoso los agentes, algunos pueden estar
+    %evadiendo y otros no. 
+    
+    Xi1(:, k+1) =-k4*kron(L, I)*(alpha_hist(:, k)+delta);
+    %Calcular función bump en cada iteración
+    t = k * h;  % Definir t en cada iteración del ciclo como tiempo en segundos
+    if t0 <= t && t < n + t0
+        bump(k) = exp((-tau) /  (1- ((t - t0) / n)^2));
+    else
+        bump(k) = 0;
+    end
+    % Sensado de cada agente con respecto a los demás
+    for p = 1:num_agentes
+        agentes_cercanos = [];
+        distancias_cercanas = [];
+
+        for j = 1:num_agentes
+            if p ~= j
+                % Calcular la diferencia de posición en x y en y
+                pi_ox(p,j) = x_hist(p, k) + l * cos(theta(p, k)) - x_hist(j, k)- l * cos(theta(j, k));
+                pi_oy(p,j) = y_hist(p, k)+ l * sin(theta(p, k)) - y_hist(j, k)- l * sin(theta(p, k));
+                norm_pi_o(p,j) = sqrt((pi_ox(p,j))^2 + (pi_oy(p,j))^2);
+                thetaio(p,j) = atan2(-pi_ox(p,j), -pi_oy(p,j));
+                vthetaio(p,j) = abs(theta(p,k) - thetaio(p,j));
+                
+                % Verificar si el agente j está dentro del rango y ángulo
+                if norm_pi_o(p,j) <= dm(p,k) && vthetaio(p,j) < pi/2
+                    agentes_cercanos = [agentes_cercanos; j];
+                    distancias_cercanas = [distancias_cercanas; norm_pi_o(p,j)];
+                end
+            end
+        end
+        % Determinar el valor de gamma y el agente más cercano
+        if ~isempty(agentes_cercanos)
+            [min_distancia, idx] = min(distancias_cercanas);
+            agente_mas_cercano = agentes_cercanos(idx);
+            gamma = 1;
+            
+            % Tomar las coordenadas del agente más cercano
+            x_cercano = x_hist(agente_mas_cercano, k)+ l * cos(theta(agente_mas_cercano, k));
+            y_cercano = y_hist(agente_mas_cercano, k)+ l * sin(theta(agente_mas_cercano, k));
+            
+            % Asignar el ángulo theta_io
+            thetaio(p, agente_mas_cercano) = atan2(-x_cercano, -y_cercano);
+            
+            % Asignar el vector p_io
+            p_io = [x_cercano; y_cercano];
+            
+            % Buscar un vector ortogonal a p_io
+            p_iorto = [-y_cercano; x_cercano];
+        else
+            gamma = 0;
+            x_cercano = 0; % Valor por defecto si no hay agentes cercanos
+            y_cercano = 0; % Valor por defecto si no hay agentes cercanos
+            p_io = [0; 0]; % Valor por defecto si no hay agentes cercanos
+            p_iorto = [0; 0]; % Valor por defecto si no hay agentes cercanos
+        end
+        qic(1)=p_iorto(1);
+        qic(2)=p_iorto(2);
+        thetaic=atan2(p_iorto(2)-y_hist(p,k),p_iorto(1)-x_hist(p,k));
+        quic(3)=thetaic;
+        % Actualizamos si evadimos o vamos a consenso
+        qiu(3 * p - 2, k) = (1 - gamma) * Xi1(3*p-2, k) + gamma * qic(1);
+        qiu(3 * p - 1, k) = (1 - gamma) * Xi1(3*p-1, k) + gamma * qic(2);
+        qiu(3 * p, k) = (1 - gamma) *Xi1(3*p, k) + gamma * qic(3);
+        %----- En cada iteración actualiza la distancia que debe mantener cada
+        %agente para su distancia segura.
+        if sin(norm(vthetaio(p,:)))==0
+        dm(p,k) = 0;
+        else
+        dm(p,k) = min(Rang, ro / (sin(norm(vthetaio(p,:)))));
+        end
+        %---Calculamos la matriz de rotación-ángulo
+        R = [cos(theta(p, k)) sin(theta(p, k)) 0;
+            -sin(theta(p, k))  cos(theta(p, k)) 0;
+            0                       0           1];
+        %------- Calcula el error en el marco de referencia local con sus
+        %vecinos
+        ei = R * [qiu(3 * p - 2, k); qiu(3 * p - 1, k);qiu(3 * p, k)];
+        
+        vl(:,k)=L*vi(:,k);
+
+        if  kappa <= norm(vl(p,k))
+            vd(p,k)=k0*exp(-tau);
+        else
+            vd(p,k)=k0*bump(k);
+        end
+        
+        vi(p,k) = vd(p,k) * cos(ei(3)) + k1 * ei(1);
+        
+        if ei(3)==0
+            wi(p,k) = k2 * vd(p,k) * ei(2) + k3 * ei(3);
+        else
+        wi(p,k) = k2 * vd(p,k) * ei(2) * (sin(ei(3))) / (ei(3)) + k3 * ei(3);
+        end
+
+        % Dinámica del sistema
+        x_hist(p, k + 1) = x_hist(p, k) + h * vi(p,k) * cos(theta(p, k));
+        y_hist(p, k + 1) = y_hist(p, k) + h * vi(p,k) * sin(theta(p, k));
+        theta(p, k + 1) = theta(p, k) + h * wi(p,k);
+
+         % Actualizar el vector z con los nuevos valores de x y y
+        z_hist(3 * p - 2, k + 1) = x_hist(p, k + 1) + l * cos(theta(p, k+1));
+        z_hist(3 * p-1, k + 1) = y_hist(p, k + 1) + l * sin(theta(p, k+1));
+        z_hist(3 * p, k + 1) = theta(p,k+1);
+        alpha_hist(3 * p - 2,k+1)=z_hist(3*p-2, k + 1)+ z * cos(theta(p, k+1));
+        alpha_hist(3 * p-1,k+1)=z_hist(3*p-1, k + 1)+ z * sin(theta(p, k+1));
+        alpha_hist(3 * p, k + 1) = theta(p,k+1);
+    end
+end
+
+figure
+hold on
+plot(z_hist(1,:),z_hist(2,:))
+quiver(z_hist(1, 1), z_hist(2, 1), cos(theta(1,1)), sin(theta(3,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
+quiver(z_hist(1, end), z_hist(2, end), cos(theta(1,end)), sin(theta(3,end)), 0.1, 'g', 'LineWidth', .1, 'MaxHeadSize', 2);
+plot(z_hist(4,:),z_hist(5,:))
+quiver(z_hist(4, 1), z_hist(5, 1), cos(theta(2,1)), sin(theta(2,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
+quiver(z_hist(4, end), z_hist(5, end), cos(theta(2,end)), sin(theta(2,end)), 0.1, 'g', 'LineWidth', .1, 'MaxHeadSize', 2);
+plot(z_hist(7,:),z_hist(8,:))
+quiver(z_hist(7, 1), z_hist(8, 1), cos(theta(3,1)), sin(theta(3,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
+quiver(z_hist(7, end), z_hist(8, end), cos(theta(3,end)), sin(theta(3,end)), 0.1, 'g', 'LineWidth', .1, 'MaxHeadSize', 2);
+plot(z_hist(10,:),z_hist(11,:))
+quiver(z_hist(10, 1), z_hist(11, 1), cos(theta(4,1)), sin(theta(4,1)), 0.1, 'r', 'LineWidth', .1, 'MaxHeadSize', 1 );
+quiver(z_hist(10, end), z_hist(11, end), cos(theta(4,end)), sin(theta(4,end)), 0.1, 'g', 'LineWidth', .1, 'MaxHeadSize', 2);
 xlabel('x');
 ylabel('y');
-title('Trayectoria del robot no holónomo');
-hold off
+title('Trayectoria de los robots no holónomos');
 grid on
-
-figure
-hold on
-plot(p_star(1,:),p_star(2,:))
-plot(p_star(3,:),p_star(4,:))
-plot(p_star(5,:),p_star(6,:))
-plot(p_star(7,:),p_star(8,:))
-hold off
-
-figure
-hold on
-plot(p(1,:),p(2,:))
-plot(p(3,:),p(4,:))
-plot(p(5,:),p(6,:))
-plot(p(7,:),p(8,:))
 hold off
 
 t = linspace(0, tiempo, iteraciones);
 figure 
-subplot(1,3,1)
+subplot(1,2,1)
 hold on 
-plot(t,e(1,:))
-plot(t,e(4,:))
-plot(t,e(7,:))
-plot(t,e(10,:))
+plot(t,qid(1, 1:iteraciones ) - z_hist(2, 1:iteraciones ))
+plot(t,qid(4, 1:iteraciones ) - z_hist(5, 1:iteraciones ))
+plot(t,qid(7, 1:iteraciones ) - z_hist(8, 1:iteraciones ))
+plot(t,qid(10, 1:iteraciones ) - z_hist(11, 1:iteraciones ))
 xlabel('t');
 ylabel('error');
 title('Error en el eje x');
 grid on
 hold off
-subplot(1,3,2)
+subplot(1,2,2)
 hold on
-plot(t,e(2,:))
-plot(t,e(5,:))
-plot(t,e(8,:))
-plot(t,e(11,:))
+plot(t,qid(2, 1:iteraciones) - z_hist(2, 1:iteraciones))
+plot(t,qid(5, 1:iteraciones) - z_hist(5, 1:iteraciones))
+plot(t,qid(8, 1:iteraciones) - z_hist(8, 1:iteraciones))
+plot(t,qid(11, 1:iteraciones) - z_hist(11, 1:iteraciones))
 xlabel('t');
 ylabel('error');
 title('Error en el eje y');
 grid on 
 hold off
-subplot(1,3,3)
-hold on
-plot(t,e(3,:))
-plot(t,e(6,:))
-plot(t,e(9,:))
-plot(t,e(12,:))
-xlabel('t');
-ylabel('error');
-title('Error en el angulo theta');
-grid on 
-hold off
 
-figure
+figure 
 subplot(1,2,1)
-plot(t,v_star)
+hold on 
+plot(t,vi(1,1:iteraciones))
+plot(t,vi(2,1:iteraciones))
+plot(t,vi(3,1:iteraciones))
+plot(t,vi(4,1:iteraciones))
 xlabel('t');
 ylabel('v');
 title('Ley de control v');
 grid on
+hold off
 subplot(1,2,2)
-plot(t,w_star)
+hold on
+plot(t,wi(1,1:iteraciones))
+plot(t,wi(2,1:iteraciones))
+plot(t,wi(3,1:iteraciones))
+plot(t,wi(4,1:iteraciones))
 xlabel('t');
 ylabel('w');
 title('Ley de control w');
-grid on
+grid on 
+hold off
 
-function p_io_perp = find_p_ic(p_io, p_ia)
-    % Calcular el vector perpendicular
-    p_io_perp = [-p_io(2), p_io(1)];
-    
-    % Verificar el producto interno
-    if dot(p_ia, p_io_perp) < 0
-        % Invertir el signo de p_io_perp si el producto interno es negativo
-        p_io_perp = -p_io_perp;
-    end
+figure;
+hold on;
+for p = 1:num_agentes
+    plot(0:h:tiempo, qid(3*p-1, 1:iteraciones + 1) - z_hist(3*p-1, 1:iteraciones + 1), 'DisplayName', ['Error y Agente ', num2str(p)]);
 end
+xlabel('Tiempo (s)');
+ylabel('Error en y');
+title('Error en y de los agentes con respecto al tiempo');
+legend('show');
+grid on;
+hold off;
 
-function gamma = gammaFunc(theta_io, p_io, R, r)
- 
-    % Calcular el valor absoluto de theta_io
-    bar_theta_io = abs(theta_io);
-    
-    % Calcular el valor de dm
-    if sin(bar_theta_io) == 0
-        d_m = R; % Evitar división por cero
-    else
-        d_m = min(R, r / sin(bar_theta_io));
-    end
-    
-    % Calcular la norma de p_io
-    norm_p_io = norm(p_io);
-    
-    % Determinar el valor de gamma
-    if bar_theta_io >= pi/2 || norm_p_io > d_m
-        gamma = 0;
-    else
-        gamma = 1;
-    end
-end
 
-function sigma=bumpFunc(tau,t,t0,n)
-    %Se considera que el tiempo nunca sera menor a 0
-    if t0 <= t && t < n + t0
-        sigma = exp(-tau / (1 - ((t - t0) / n)^2));
-    else
-        sigma = 0;
-    end
-end
+
