@@ -5,15 +5,15 @@ close all
 %Establecer la matriz p
 syms p1x p1y p2x p2y p3x p3y p4x p4y
 
-p1=[p1x;p1y];
-p2=[p2x;p2y];
-p3=[p3x;p3y];
-p4=[p4x;p4y];
+% p1=[p1x;p1y];
+% p2=[p2x;p2y];
+% p3=[p3x;p3y];
+% p4=[p4x;p4y];
 
-% p1=[0;0];
-% p2=[1;0];
-% p3=[1;-1];
-% p4=[0;-1];
+p1=[0;0];
+p2=[1;0];
+p3=[1;-1];
+p4=[0;-1];
 
 %producto kronecker
 I=eye(2);
