@@ -96,4 +96,7 @@ hold off
 t = linspace(0, tiempo, iteraciones);
 figure
 plot(t,sigma)
+title('Errores de la estructura infinitesimal rigida')
+xlabel('tiempo (s)')
+ylabel('Error')
 grid on

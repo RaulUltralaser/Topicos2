@@ -200,12 +200,20 @@ hold off
 t = linspace(0, tiempo, iteraciones);
 figure
 plot(t,sigma)
+title('Errores de la estructura rigida')
+xlabel('tiempo (s)')
+ylabel('Error')
 grid on
-
 figure
 plot(t,sigma_2)
+title('Errores de la estructura minimamente rigida')
+xlabel('tiempo (s)')
+ylabel('Error')
 grid on
 
 figure
 plot(t,sigma_3)
+title('Errores de la estructura no rigida')
+xlabel('tiempo (s)')
+ylabel('Error')
 grid on
