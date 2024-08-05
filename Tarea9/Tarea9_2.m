@@ -113,15 +113,15 @@ axis equal;
 h.EdgeLabel = edgeLabels_rigida;
 
 figure;
-h=plot(G_minimamente_rigida, 'Layout', 'force');
-title('Estructura Minimamente Rígida');
+h=plot(G_minimamente_rigida);
+title('Estructura Infinitesimalmente Rígida');
 axis equal;
 % Añadir etiquetas personalizadas a las aristas
-h.EdgeLabel = edgeLabels_minimamente_rigida;
+% h.EdgeLabel = edgeLabels_minimamente_rigida;
 
 figure;
-h=plot(G_no_rigida, 'Layout', 'force');
-title('Estructura No Rígida');
+h=plot(G_no_rigida);
+title('Estructura No Infinitesimalmente Rígida');
 axis equal;
 % Añadir etiquetas personalizadas a las aristas
-h.EdgeLabel = edgeLabels_no_rigida;
+% h.EdgeLabel = edgeLabels_no_rigida;
