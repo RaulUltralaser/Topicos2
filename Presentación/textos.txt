@@ -1,0 +1,83 @@
+\begin{array}{l}
+\text{(Suficiencia) Note que el sistema en lazo cerrado es equivalente a la siguiente ecuación} \\
+\dot{x}_{F}^0(t) = -(\mathcal{L}_1 \otimes I_p) x_{F}^0(t) - (\mathcal{L}_2 \otimes I_p) x_{L}^0. \\
+\text{Tomando la transformada de Laplace se tiene que} \\
+sX_{F}^0(s) - x_{F}^0(0) = -(\mathcal{L}_1 \otimes I_p) X_{F}^0(s) - \frac{1}{s} (\mathcal{L}_2 \otimes I_p) x_{L}^0. \\
+\text{donde } X_{F}^0(s) \text{ es la transformada de Laplace de } x_{F}^0(t). \\
+\text{Después de alguna simplificación, se puede escribir como} \\
+X_{F}^0(s) = \left( sI_{n-m} \otimes I_p + \mathcal{L}_1 \otimes I_p \right)^{-1} \left[ x_{F}^0(0) - \frac{1}{s} (\mathcal{L}_2 \otimes I_p) x_{L}^0 \right]. \\
+\text{Cuando la Condición 1 se cumple en } \mathcal{G}, \text{ se sigue del Lema 2 que } \mathcal{L}_1 \text{ es invertible.} \\
+\text{Según el teorema del disco de Gershgorin, se sigue que los valores propios de } \mathcal{L}_1 \\
+\text{están ya sea en el semiplano derecho abierto o en el origen. Combinando esto con el hecho de que } \mathcal{L}_1 \\
+\text{es invertible, se muestra que } \mathcal{L}_1 \text{ tiene todos los valores propios en el semiplano derecho abierto.} \\
+\text{Por lo tanto, se sigue que } -(\mathcal{L}_1 \otimes I_p) \text{ es Hurwitz. Basado en el teorema del valor final, tenemos que} \\
+\lim_{t \to \infty} x_{F}^0(t) = \lim_{s \to 0} s X_{F}^0(s). \\
+\end{array}
+
+
+
+\begin{array}{l}
+=-(\mathcal{L}_1^{-1}\mathcal{L}\otimes I_p)x^0_L\\
+\text{Ahora estudiamos la propiedad de } \mathcal{L}_1^{-1}\mathcal{L}_2. \text{Debido a que} \mathcal{L}_1 \text{es una}\\ 
+\text{M-matriz no singular, se sigue del lema 1 que} \mathcal{L}_1^{-1}\geq 0. \text{ Note también que}\\
+\begin{bmatrix}\mathcal{L}_1&\mathcal{L}_2\\ 0_{m\times (n-m)}&0_{m\times m}\end{bmatrix}1_n = 0_n, \text{ lo que implica que } \mathcal{L}_1 1_{n-m} + \mathcal{L}_2 1_m = 0_{n-m}. \\
+\text{Es decir, } -\mathcal{L}_1^{-1} \mathcal{L}_2 1_m = 1_{n-m}. \text{ Combinando esto con el hecho de que } \\
+\mathcal{L}_1^{-1} \geq 0 \text{ y } \mathcal{L}_2 \leq 0 \text{ muestra que cada fila de } -\mathcal{L}_1^{-1} \mathcal{L}_2 \text{ tiene una suma igual a 1.} \\
+\text{Según la Definición 2, las posiciones finales de los seguidores, } -\mathcal{L}_1^{-1} \mathcal{L}_2 \otimes I_p x_L^0, \\
+\text{están dentro del casco convexo formado por los líderes estacionarios.}
+\end{array}
+
+\begin{array}{l}
+\text{Usando la segunda ley de control para un sistema de integrador simple, todos los seguidores siempre convergerán al} \\
+\text{hiperrectángulo mínimo que contiene a los líderes estacionarios y} \\
+\text{cada uno de cuyos hiperplanos es normal a un eje de } \mathcal{C}_0, \\
+\text{para condiciones iniciales arbitrarias } x_{i}^0(0), i \in \mathcal{F}, \\
+\text{si y solo si existe } N_2 \text{ tal que la Condición 1 se cumple en la unión de } \mathcal{G}_i, i = N_1, \ldots, N_1 + N_2, \\
+\text{para cualquier } N_1 \text{ finito.}
+\end{array}
+
+\begin{array}{l}
+\text{Dado } n \text{ puntos fijos } x_i \in \mathbb{R}^p, i = 1, \ldots, n, \text{ relativos al sistema de coordenadas inerciales } \mathcal{C}_0. \\
+\text{El casco convexo formado por los } n \text{ puntos es equivalente a la intersección de todos los hiperrectángulos mínimos} \\
+\text{que contienen a los } n \text{ puntos.}
+\end{array}
+
+\begin{array}{l}
+\text{\textbf{Teorema 2: }Usando la segunda ley de control para el sistema a consideración, todos los seguidores } \\
+\text{siempre convergerán al casco convexo estacionario formado por los líderes estacionarios} \\
+\text{para condiciones iniciales arbitrarias } x_{i}^0(0), i \in \mathcal{F}, \\
+\text{si y solo si existe } N_2 \text{ tal que la Condición 1 se cumple en la unión de } \mathcal{G}_i, i = N_1, \ldots, N_1 + N_2, \\
+\text{para cualquier } N_1 \text{ finito.}
+\end{array}
+
+\begin{array}{l}
+\text{Cuando existen }m,m<n,\text{líderes dinámicos y } n-m \text{ seguidores}\\ 
+\text{proponen la siguietne ley de control sin mediciones de velocidad como}\\
+u_i(t) = v_i(t), i\in\mathcal{R} \\
+u_i(t) = -\alpha\sum_{j\in\mathcal{F}\bigcup\mathcal{R}}a_{ij}(t)\left[x_i(t)-x_j(t)\right] \\
+-\beta sgn\left\{\sum_{j\in\mathcal{F}\bigcup\mathcal{R}} a_{ij}(t)\left[x_i(t)-x_j(t)\right]\right\},i\in\mathcal{F} \\
+\end{array}
+
+\begin{array}{l}
+\text{Supongamos que la topología de la red dirigida está fija,} \\
+\alpha > 0, \text{ y } \beta \geq \gamma_l, \text{ donde } \gamma_l = \sup_{i \in R} \|v_i(t)\|. \\
+\text{Usando la tercera ley de control para el sistema de integrador simple, todos los seguidores}\\
+ \text{siempre convergerán al casco convexo dinámico} \\
+\text{Co}\{x_j(t), j \in R\} \text{ cuando } t \to \infty \text{ para condiciones iniciales arbitrarias } x_i(0), i \in \mathcal{F}, \\
+\text{si y solo si la Condición 1 se cumple en el grafo dirigido } \mathcal{G}. \\
+\text{En particular, las posiciones finales de los seguidores están dadas por } - \left(\mathcal{L}_1^{-1} \mathcal{L}_2 \otimes I_p\right) x_L(t), \\
+\text{donde } x_L \text{ es el vector columna de las posiciones de los líderes, y } \mathcal{L}_1 \text{ y } \mathcal{L}_2 \text{ están dados en}\\
+\begin{bmatrix}\mathcal{L}_1&\mathcal{L}_2\\0_{m\times(n-m)}&0_{m\times n}\end{bmatrix}
+\end{array}
+
+
+\begin{array}{l}
+\text{\textbf{Teoreme 4:} Supongamos que } \beta > \gamma_l, \text{ donde } \gamma_l \text{ está definido en el Teorema3.} \\
+\text{Usando le tercer ley de control para el sistema considerado, todos los seguidores}\\
+\text{siempre convergerán al hiperrectángulo mínimo dinámico que contiene a los} \\
+\text{líderes dinámicos y cada uno de cuyos hiperplanos es normal a un eje de } C_0 \text{ cuando } t \to \infty, \\
+\text{para condiciones iniciales arbitrarias } x_i(0), i \in \mathcal{F}, \text{ si la Condición 1}\\
+\text{se cumple en el grafo dirigido } \mathcal{G}(t) \text{ en cada intervalo de tiempo} \\
+\text{de la forma } \left[ \sum_{j=1}^k \Delta_j, \sum_{j=1}^{k+1} \Delta_j \right).
+\end{array}
+
